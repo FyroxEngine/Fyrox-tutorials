@@ -1,0 +1,8 @@
+[package]
+name = "tutorial-shooter"
+version = "0.1.0"
+authors = ["Dmitry Stepanov <d1maxa@yandex.ru>"]
+edition = "2018"
+
+[dependencies]
+rg3d = "0.17.0"
