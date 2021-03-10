@@ -1,0 +1,273 @@
+[INFO]: GL texture 1 was created!
+[INFO]: GL texture 2 was created!
+[INFO]: Shader FlatShader_VertexShader compiled!
+
+[INFO]: Shader FlatShader_FragmentShader compiled!
+
+[INFO]: Shader FlatShader linked!
+
+[INFO]: Shader SsaoShader_VertexShader compiled!
+
+[INFO]: Shader SsaoShader_FragmentShader compiled!
+
+[INFO]: Shader SsaoShader linked!
+
+[INFO]: GL texture 3 was created!
+[INFO]: Shader DeferredLightShader_VertexShader compiled!
+
+[INFO]: Shader DeferredLightShader_FragmentShader compiled!
+
+[INFO]: Shader DeferredLightShader linked!
+
+[INFO]: Shader DeferredLightShader_VertexShader compiled!
+
+[INFO]: Shader DeferredLightShader_FragmentShader compiled!
+
+[INFO]: Shader DeferredLightShader linked!
+
+[INFO]: Shader DeferredLightShader_VertexShader compiled!
+
+[INFO]: Shader DeferredLightShader_FragmentShader compiled!
+
+[INFO]: Shader DeferredLightShader linked!
+
+[INFO]: Shader AmbientLightShader_VertexShader compiled!
+
+[INFO]: Shader AmbientLightShader_FragmentShader compiled!
+
+[INFO]: Shader AmbientLightShader linked!
+
+[INFO]: Shader FlatShader_VertexShader compiled!
+
+[INFO]: Shader FlatShader_FragmentShader compiled!
+
+[INFO]: Shader FlatShader linked!
+
+[INFO]: GL texture 4 was created!
+[INFO]: GL texture 5 was created!
+[INFO]: GL texture 6 was created!
+[INFO]: Shader SpotShadowMapShader_VertexShader compiled!
+
+[INFO]: Shader SpotShadowMapShader_FragmentShader compiled!
+
+[INFO]: Shader SpotShadowMapShader linked!
+
+[INFO]: GL texture 7 was created!
+[INFO]: GL texture 8 was created!
+[INFO]: GL texture 9 was created!
+[INFO]: GL texture 10 was created!
+[INFO]: GL texture 11 was created!
+[INFO]: GL texture 12 was created!
+[INFO]: Shader PointShadowMapShader_VertexShader compiled!
+
+[INFO]: Shader PointShadowMapShader_FragmentShader compiled!
+
+[INFO]: Shader PointShadowMapShader linked!
+
+[INFO]: Shader SpotVolumetricLight_VertexShader compiled!
+
+[INFO]: Shader SpotVolumetricLight_FragmentShader compiled!
+
+[INFO]: Shader SpotVolumetricLight linked!
+
+[INFO]: Shader PointVolumetricLight_VertexShader compiled!
+
+[INFO]: Shader PointVolumetricLight_FragmentShader compiled!
+
+[INFO]: Shader PointVolumetricLight linked!
+
+[INFO]: Shader FlatShader_VertexShader compiled!
+
+[INFO]: Shader FlatShader_FragmentShader compiled!
+
+[INFO]: Shader FlatShader linked!
+
+[INFO]: Shader FlatShader_VertexShader compiled!
+
+[INFO]: Shader FlatShader_FragmentShader compiled!
+
+[INFO]: Shader FlatShader linked!
+
+[INFO]: Shader FlatShader_VertexShader compiled!
+
+[INFO]: Shader FlatShader_FragmentShader compiled!
+
+[INFO]: Shader FlatShader linked!
+
+[INFO]: GL texture 13 was created!
+[INFO]: GL texture 14 was created!
+[INFO]: GL texture 15 was created!
+[INFO]: GL texture 16 was created!
+[INFO]: GL texture 17 was created!
+[INFO]: Shader UIShader_VertexShader compiled!
+
+[INFO]: Shader UIShader_FragmentShader compiled!
+
+[INFO]: Shader UIShader linked!
+
+[INFO]: Shader ParticleSystemShader_VertexShader compiled!
+
+[INFO]: Shader ParticleSystemShader_FragmentShader compiled!
+
+[INFO]: Shader ParticleSystemShader linked!
+
+[INFO]: Shader DebugShader_VertexShader compiled!
+
+[INFO]: Shader DebugShader_FragmentShader compiled!
+
+[INFO]: Shader DebugShader linked!
+
+[INFO]: Shader ForwardShader_VertexShader compiled!
+
+[INFO]: Shader ForwardShader_FragmentShader compiled!
+
+[INFO]: Shader ForwardShader linked!
+
+[INFO]: Shader FXAAShader_VertexShader compiled!
+
+[INFO]: Shader FXAAShader_FragmentShader compiled!
+
+[INFO]: Shader FXAAShader linked!
+
+[INFO]: Trying to load "data/models/barrel.FBX"
+[INFO]: FBX "data/models/barrel.FBX" loaded in 1 ms
+	- Parsing - 1 ms
+	- DOM Prepare - 0 ms
+	- Conversion - 0 ms
+[INFO]: Model "data/models/barrel.FBX" is loaded!
+[INFO]: Starting resolve...
+[INFO]: Resolving graph...
+[INFO]: Original handles resolved!
+[INFO]: Checking integrity...
+[INFO]: Integrity restored for 3 instances! 0 new nodes were added!
+[INFO]: Graph resolved successfully!
+[INFO]: Resolving animations...
+[INFO]: Animations resolved successfully!
+[INFO]: Geometry for trimesh RigidBodyHandle(Index { index: 0, generation: 0 }) was restored from node at handle [Idx: 1; Gen: 1]!
+[INFO]: Resolve succeeded!
+[INFO]: Model "data/models/scene.rgs" is loaded!
+[INFO]: Geometry for trimesh RigidBodyHandle(Index { index: 0, generation: 0 }) was restored from node at handle [Idx: 2; Gen: 1]!
+[INFO]: Resource data/models/scene.rgs was successfully embedded into physics world!
+[INFO]: Texture "data/textures/barrel_normal.jpg" is loaded in 11.149767ms!
+[INFO]: Texture "data/textures/barrel.jpg" is loaded in 20.926331ms!
+[INFO]: Texture "data/textures/skybox/front.jpg" is loaded in 41.283889ms!
+[INFO]: Texture "data/textures/skybox/left.jpg" is loaded in 43.776835ms!
+[INFO]: Texture "data/textures/skybox/back.jpg" is loaded in 44.74541ms!
+[INFO]: Texture "data/textures/skybox/up.jpg" is loaded in 45.89563ms!
+[INFO]: Texture "data/textures/skybox/right.jpg" is loaded in 46.528673ms!
+[INFO]: Texture "data/textures/skybox/down.jpg" is loaded in 46.862393ms!
+[INFO]: Texture "data/textures/floor.jpg" is loaded in 50.899929ms!
+[INFO]: GL texture 18 was created!
+[INFO]: GL texture 19 was created!
+[INFO]: GL texture 20 was created!
+[INFO]: GL texture 21 was created!
+[INFO]: GL texture 22 was created!
+[INFO]: GL texture 23 was created!
+[INFO]: GL texture 24 was created!
+[INFO]: Shader GBufferInstancedShader_VertexShader compiled!
+
+[INFO]: Shader GBufferInstancedShader_FragmentShader compiled!
+
+[INFO]: Shader GBufferInstancedShader linked!
+
+[INFO]: Shader GBufferShader_VertexShader compiled!
+
+[INFO]: Shader GBufferShader_FragmentShader compiled!
+
+[INFO]: Shader GBufferShader linked!
+
+[INFO]: GL texture 25 was created!
+[INFO]: GL texture 26 was created!
+[INFO]: GL texture 27 was created!
+[INFO]: GL texture 28 was created!
+[INFO]: GL texture 29 was created!
+[INFO]: GL texture 30 was created!
+[INFO]: GL texture 31 was created!
+[INFO]: GL texture 32 was created!
+[INFO]: GL texture 33 was created!
+[INFO]: GL texture 34 was created!
+[INFO]: Shader FlatShader_VertexShader compiled!
+
+[INFO]: Shader FlatShader_FragmentShader compiled!
+
+[INFO]: Shader FlatShader linked!
+
+[INFO]: Shader SsaoShader_VertexShader compiled!
+
+[INFO]: Shader SsaoShader_FragmentShader compiled!
+
+[INFO]: Shader SsaoShader linked!
+
+[INFO]: GL texture 35 was created!
+[INFO]: GL texture 2 was destroyed!
+[INFO]: GL texture 1 was destroyed!
+[INFO]: GL texture 3 was destroyed!
+[INFO]: GL texture 1 was created!
+[INFO]: GL texture 2 was created!
+[INFO]: GL texture 3 was created!
+[INFO]: GL texture 36 was created!
+[INFO]: GL texture 37 was created!
+[INFO]: Shader GBufferInstancedShader_VertexShader compiled!
+
+[INFO]: Shader GBufferInstancedShader_FragmentShader compiled!
+
+[INFO]: Shader GBufferInstancedShader linked!
+
+[INFO]: Shader GBufferShader_VertexShader compiled!
+
+[INFO]: Shader GBufferShader_FragmentShader compiled!
+
+[INFO]: Shader GBufferShader linked!
+
+[INFO]: GL texture 38 was created!
+[INFO]: GL texture 21 was destroyed!
+[INFO]: GL texture 22 was destroyed!
+[INFO]: GL texture 23 was destroyed!
+[INFO]: GL texture 20 was destroyed!
+[INFO]: GL texture 24 was destroyed!
+[INFO]: GL texture 25 was destroyed!
+[INFO]: GL texture 34 was destroyed!
+[INFO]: GL texture 33 was destroyed!
+[INFO]: GL texture 35 was destroyed!
+[INFO]: GL texture 4 was destroyed!
+[INFO]: GL texture 5 was destroyed!
+[INFO]: GL texture 6 was destroyed!
+[INFO]: GL texture 7 was destroyed!
+[INFO]: GL texture 8 was destroyed!
+[INFO]: GL texture 9 was destroyed!
+[INFO]: GL texture 10 was destroyed!
+[INFO]: GL texture 11 was destroyed!
+[INFO]: GL texture 12 was destroyed!
+[INFO]: GL geometry buffer was destroyed - VAO: 3!
+[INFO]: GL texture 13 was destroyed!
+[INFO]: GL texture 15 was destroyed!
+[INFO]: GL geometry buffer was destroyed - VAO: 1!
+[INFO]: GL geometry buffer was destroyed - VAO: 2!
+[INFO]: GL geometry buffer was destroyed - VAO: 4!
+[INFO]: GL texture 2 was destroyed!
+[INFO]: GL texture 3 was destroyed!
+[INFO]: GL texture 36 was destroyed!
+[INFO]: GL texture 1 was destroyed!
+[INFO]: GL texture 37 was destroyed!
+[INFO]: GL texture 38 was destroyed!
+[INFO]: GL texture 29 was destroyed!
+[INFO]: GL texture 27 was destroyed!
+[INFO]: GL texture 30 was destroyed!
+[INFO]: GL texture 28 was destroyed!
+[INFO]: GL texture 26 was destroyed!
+[INFO]: GL texture 31 was destroyed!
+[INFO]: GL geometry buffer was destroyed - VAO: 11!
+[INFO]: GL geometry buffer was destroyed - VAO: 5!
+[INFO]: GL geometry buffer was destroyed - VAO: 6!
+[INFO]: GL geometry buffer was destroyed - VAO: 7!
+[INFO]: GL geometry buffer was destroyed - VAO: 8!
+[INFO]: GL geometry buffer was destroyed - VAO: 12!
+[INFO]: GL geometry buffer was destroyed - VAO: 13!
+[INFO]: GL geometry buffer was destroyed - VAO: 9!
+[INFO]: GL geometry buffer was destroyed - VAO: 10!
+[INFO]: GL texture 18 was destroyed!
+[INFO]: GL texture 19 was destroyed!
+[INFO]: GL texture 32 was destroyed!
+[INFO]: GL texture 16 was destroyed!
+[INFO]: GL texture 17 was destroyed!
+[INFO]: GL texture 14 was destroyed!
