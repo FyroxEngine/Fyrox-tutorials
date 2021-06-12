@@ -5,4 +5,4 @@ authors = ["Dmitry Stepanov <d1maxa@yandex.ru>"]
 edition = "2018"
 
 [dependencies]
-rg3d = "0.17.0"
+rg3d = "0.20.0"

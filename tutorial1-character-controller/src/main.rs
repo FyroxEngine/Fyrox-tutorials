@@ -3,7 +3,7 @@ use rg3d::{
         algebra::{UnitQuaternion, Vector3},
         pool::Handle,
     },
-    engine::{resource_manager::ResourceManager, Engine},
+    engine::{resource_manager::ResourceManager, Engine, RigidBodyHandle},
     event::{DeviceEvent, ElementState, Event, VirtualKeyCode, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
     gui::node::StubNode,
@@ -14,7 +14,7 @@ use rg3d::{
         camera::{CameraBuilder, SkyBox},
         node::Node,
         transform::TransformBuilder,
-        RigidBodyHandle, Scene,
+        Scene,
     },
     window::WindowBuilder,
 };
@@ -46,7 +46,7 @@ struct Player {
 
 async fn create_skybox(resource_manager: ResourceManager) -> SkyBox {
     // Load skybox textures in parallel.
-    let (front, back, left, right, top, bottom) = rg3d::futures::join!(
+    let (front, back, left, right, top, bottom) = rg3d::core::futures::join!(
         resource_manager.request_texture("data/textures/skybox/front.jpg"),
         resource_manager.request_texture("data/textures/skybox/back.jpg"),
         resource_manager.request_texture("data/textures/skybox/left.jpg"),
@@ -99,14 +99,14 @@ impl Player {
         let rigid_body_handle = scene.physics.add_body(
             RigidBodyBuilder::new_dynamic()
                 .lock_rotations() // We don't want the player to tilt.
-                .translation(0.0, 1.0, -1.0) // Offset player a bit.
+                .translation(Vector3::new(0.0, 1.0, -1.0)) // Offset player a bit.
                 .build(),
         );
 
         // Add capsule collider for the rigid body.
         scene.physics.add_collider(
             ColliderBuilder::capsule_y(0.25, 0.2).build(),
-            rigid_body_handle,
+            &rigid_body_handle,
         );
 
         // Bind pivot with rigid body. Scene will automatically sync transform of the pivot
@@ -131,11 +131,7 @@ impl Player {
         let pivot = &mut scene.graph[self.pivot];
 
         // Borrow rigid body in the physics.
-        let body = scene
-            .physics
-            .bodies
-            .get_mut(self.rigid_body.into())
-            .unwrap();
+        let body = scene.physics.bodies.get_mut(&self.rigid_body).unwrap();
 
         // Keep only vertical velocity, and drop horizontal.
         let mut velocity = Vector3::new(0.0, body.linvel().y, 0.0);
@@ -244,7 +240,7 @@ fn main() {
     let mut engine = GameEngine::new(window_builder, &event_loop, true).unwrap();
 
     // Initialize game instance.
-    let mut game = rg3d::futures::executor::block_on(Game::new(&mut engine));
+    let mut game = rg3d::core::futures::executor::block_on(Game::new(&mut engine));
 
     // Run the event loop of the main window. which will respond to OS and window events and update
     // engine's state accordingly. Engine lets you to decide which event should be handled,
