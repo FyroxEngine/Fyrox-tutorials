@@ -1,14 +1,16 @@
-use rg3d::core::algebra::UnitQuaternion;
 use rg3d::{
     animation::{
         machine::{Machine, Parameter, PoseNode, State, Transition},
         Animation,
     },
-    core::{algebra::Vector3, pool::Handle},
-    engine::resource_manager::ResourceManager,
+    core::{
+        algebra::{UnitQuaternion, Vector3},
+        pool::Handle,
+    },
+    engine::{resource_manager::ResourceManager, ColliderHandle, RigidBodyHandle},
     physics::{dynamics::RigidBodyBuilder, geometry::ColliderBuilder},
     resource::model::Model,
-    scene::{base::BaseBuilder, node::Node, ColliderHandle, RigidBodyHandle, Scene},
+    scene::{base::BaseBuilder, node::Node, Scene},
 };
 
 pub struct Bot {
@@ -47,14 +49,14 @@ impl Bot {
         let rigid_body = scene.physics.add_body(
             RigidBodyBuilder::new_dynamic()
                 .lock_rotations() // We don't want a bot to tilt.
-                .translation(position.x, position.y, position.z) // Set desired position.
+                .translation(Vector3::new(position.x, position.y, position.z)) // Set desired position.
                 .build(),
         );
 
         // Add capsule collider for the rigid body.
         let collider = scene
             .physics
-            .add_collider(ColliderBuilder::capsule_y(0.25, 0.2).build(), rigid_body);
+            .add_collider(ColliderBuilder::capsule_y(0.25, 0.2).build(), &rigid_body);
 
         // Bind pivot with rigid body. Scene will automatically sync transform of the pivot
         // with the transform of the rigid body.
@@ -84,11 +86,7 @@ impl Bot {
         }
 
         if self.follow_target && distance != 0.0 {
-            let rigid_body = scene
-                .physics
-                .bodies
-                .get_mut(self.rigid_body.into())
-                .unwrap();
+            let rigid_body = scene.physics.bodies.get_mut(&self.rigid_body).unwrap();
 
             // Make sure bot is facing towards the target.
             let mut position = *rigid_body.position();
@@ -169,7 +167,7 @@ impl BotAnimationMachine {
         let mut machine = Machine::new();
 
         // Load animations in parallel.
-        let (walk_animation_resource, idle_animation_resource, attack_animation_resource) = rg3d::futures::join!(
+        let (walk_animation_resource, idle_animation_resource, attack_animation_resource) = rg3d::core::futures::join!(
             resource_manager.request_model("data/animations/zombie_walk.fbx"),
             resource_manager.request_model("data/animations/zombie_idle.fbx"),
             resource_manager.request_model("data/animations/zombie_attack.fbx"),

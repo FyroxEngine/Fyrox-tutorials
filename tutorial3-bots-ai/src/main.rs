@@ -1,5 +1,5 @@
-use crate::bot::Bot;
-use crate::{message::Message, weapon::Weapon};
+use crate::{bot::Bot, message::Message, weapon::Weapon};
+use rg3d::engine::{ColliderHandle, RigidBodyHandle};
 use rg3d::{
     core::{
         algebra::{UnitQuaternion, Vector3},
@@ -14,18 +14,20 @@ use rg3d::{
     event_loop::{ControlFlow, EventLoop},
     gui::node::StubNode,
     physics::{dynamics::RigidBodyBuilder, geometry::ColliderBuilder},
-    renderer::surface::{SurfaceBuilder, SurfaceSharedData},
     resource::texture::TextureWrapMode,
     scene::{
         base::BaseBuilder,
         camera::{CameraBuilder, SkyBox},
         graph::Graph,
-        mesh::{MeshBuilder, RenderPath},
+        mesh::{
+            surface::{SurfaceBuilder, SurfaceData},
+            MeshBuilder, RenderPath,
+        },
         node::Node,
         particle_system::{BaseEmitterBuilder, ParticleSystemBuilder, SphereEmitterBuilder},
         physics::RayCastOptions,
         transform::TransformBuilder,
-        ColliderHandle, RigidBodyHandle, Scene,
+        Scene,
     },
     window::WindowBuilder,
 };
@@ -73,7 +75,7 @@ struct Player {
 
 async fn create_skybox(resource_manager: ResourceManager) -> SkyBox {
     // Load skybox textures in parallel.
-    let (front, back, left, right, top, bottom) = rg3d::futures::join!(
+    let (front, back, left, right, top, bottom) = rg3d::core::futures::join!(
         resource_manager.request_texture("data/textures/skybox/front.jpg"),
         resource_manager.request_texture("data/textures/skybox/back.jpg"),
         resource_manager.request_texture("data/textures/skybox/left.jpg"),
@@ -193,14 +195,14 @@ impl Player {
         let rigid_body_handle = scene.physics.add_body(
             RigidBodyBuilder::new_dynamic()
                 .lock_rotations() // We don't want the player to tilt.
-                .translation(0.0, 1.0, -1.0) // Offset player a bit.
+                .translation(Vector3::new(0.0, 1.0, -1.0)) // Offset player a bit.
                 .build(),
         );
 
         // Add capsule collider for the rigid body.
         let collider = scene.physics.add_collider(
             ColliderBuilder::capsule_y(0.25, 0.2).build(),
-            rigid_body_handle,
+            &rigid_body_handle,
         );
 
         // Bind pivot with rigid body. Scene will automatically sync transform of the pivot
@@ -211,7 +213,7 @@ impl Player {
             pivot,
             camera,
             weapon_pivot,
-            rigid_body: rigid_body_handle.into(),
+            rigid_body: rigid_body_handle,
             controller: Default::default(),
             sender,
             collider,
@@ -229,11 +231,7 @@ impl Player {
         let pivot = &mut scene.graph[self.pivot];
 
         // Borrow rigid body in the physics.
-        let body = scene
-            .physics
-            .bodies
-            .get_mut(self.rigid_body.into())
-            .unwrap();
+        let body = scene.physics.bodies.get_mut(&self.rigid_body).unwrap();
 
         // Keep only vertical velocity, and drop horizontal.
         let mut velocity = Vector3::new(0.0, body.linvel().y, 0.0);
@@ -335,13 +333,13 @@ fn create_shot_trail(
         .build();
 
     // Create unit cylinder with caps that faces toward Z axis.
-    let shape = Arc::new(RwLock::new(SurfaceSharedData::make_cylinder(
+    let shape = Arc::new(RwLock::new(SurfaceData::make_cylinder(
         6,     // Count of sides
         1.0,   // Radius
         1.0,   // Height
         false, // No caps are needed.
         // Rotate vertical cylinder around X axis to make it face towards Z axis
-        UnitQuaternion::from_axis_angle(&Vector3::x_axis(), 90.0f32.to_radians()).to_homogeneous(),
+        &UnitQuaternion::from_axis_angle(&Vector3::x_axis(), 90.0f32.to_radians()).to_homogeneous(),
     )));
 
     MeshBuilder::new(
@@ -467,15 +465,11 @@ impl Game {
                 //
 
                 // For now just apply some force at the point of impact.
-                let collider = scene
-                    .physics
-                    .colliders
-                    .get(intersection.collider.into())
-                    .unwrap();
+                let collider = scene.physics.colliders.get(&intersection.collider).unwrap();
                 scene
                     .physics
                     .bodies
-                    .get_mut(collider.parent())
+                    .native_mut(collider.parent().unwrap())
                     .unwrap()
                     .apply_force_at_point(
                         ray.dir.normalize().scale(10.0),
@@ -546,7 +540,7 @@ fn main() {
     let mut engine = GameEngine::new(window_builder, &event_loop, true).unwrap();
 
     // Initialize game instance.
-    let mut game = rg3d::futures::executor::block_on(Game::new(&mut engine));
+    let mut game = rg3d::core::futures::executor::block_on(Game::new(&mut engine));
 
     // Run the event loop of the main window. which will respond to OS and window events and update
     // engine's state accordingly. Engine lets you to decide which event should be handled,
