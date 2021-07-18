@@ -1,8 +1,10 @@
-use rg3d::core::algebra::UnitQuaternion;
-use rg3d::event::DeviceEvent;
 use rg3d::{
-    core::{algebra::Vector3, pool::Handle},
+    core::{
+        algebra::{UnitQuaternion, Vector3},
+        pool::Handle,
+    },
     engine::resource_manager::ResourceManager,
+    event::DeviceEvent,
     resource::texture::TextureWrapMode,
     scene::{
         base::BaseBuilder,

@@ -1,10 +1,8 @@
-//! Work-in-progress!
-
 use crate::{level::Level, player::Player};
-use rg3d::event::{DeviceEvent, DeviceId, WindowEvent};
 use rg3d::{
     core::{color::Color, futures::executor::block_on, pool::Handle},
     engine::framework::{Framework, GameEngine, GameState},
+    event::{DeviceEvent, DeviceId, WindowEvent},
     scene::Scene,
 };
 
