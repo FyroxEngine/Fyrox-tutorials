@@ -3,6 +3,7 @@ use rg3d::{
     core::{color::Color, futures::executor::block_on, pool::Handle},
     engine::framework::{Framework, GameEngine, GameState},
     event::{DeviceEvent, DeviceId, WindowEvent},
+    event_loop::ControlFlow,
     scene::Scene,
 };
 
@@ -33,7 +34,7 @@ impl GameState for Game {
         }
     }
 
-    fn on_tick(&mut self, engine: &mut GameEngine, dt: f32) {
+    fn on_tick(&mut self, engine: &mut GameEngine, dt: f32, _: &mut ControlFlow) {
         let scene = &mut engine.scenes[self.scene];
 
         self.player.update(scene, dt);
