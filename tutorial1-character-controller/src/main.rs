@@ -3,15 +3,20 @@ use rg3d::{
         algebra::{UnitQuaternion, Vector3},
         pool::Handle,
     },
-    engine::{resource_manager::ResourceManager, Engine, RigidBodyHandle},
+    engine::{
+        resource_manager::{MaterialSearchOptions, ResourceManager},
+        Engine,
+    },
     event::{DeviceEvent, ElementState, Event, VirtualKeyCode, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
-    gui::node::StubNode,
-    physics::{dynamics::RigidBodyBuilder, geometry::ColliderBuilder},
+    physics3d::{
+        rapier::{dynamics::RigidBodyBuilder, geometry::ColliderBuilder},
+        RigidBodyHandle,
+    },
     resource::texture::TextureWrapMode,
     scene::{
         base::BaseBuilder,
-        camera::{CameraBuilder, SkyBox},
+        camera::{CameraBuilder, SkyBox, SkyBoxBuilder},
         node::Node,
         transform::TransformBuilder,
         Scene,
@@ -19,10 +24,6 @@ use rg3d::{
     window::WindowBuilder,
 };
 use std::time;
-
-// Create our own engine type aliases. These specializations are needed, because the engine
-// provides a way to extend UI with custom nodes and messages.
-type GameEngine = Engine<(), StubNode>;
 
 // Our game logic will be updated at 60 Hz rate.
 const TIMESTEP: f32 = 1.0 / 60.0;
@@ -47,31 +48,32 @@ struct Player {
 async fn create_skybox(resource_manager: ResourceManager) -> SkyBox {
     // Load skybox textures in parallel.
     let (front, back, left, right, top, bottom) = rg3d::core::futures::join!(
-        resource_manager.request_texture("data/textures/skybox/front.jpg"),
-        resource_manager.request_texture("data/textures/skybox/back.jpg"),
-        resource_manager.request_texture("data/textures/skybox/left.jpg"),
-        resource_manager.request_texture("data/textures/skybox/right.jpg"),
-        resource_manager.request_texture("data/textures/skybox/up.jpg"),
-        resource_manager.request_texture("data/textures/skybox/down.jpg")
+        resource_manager.request_texture("data/textures/skybox/front.jpg", None),
+        resource_manager.request_texture("data/textures/skybox/back.jpg", None),
+        resource_manager.request_texture("data/textures/skybox/left.jpg", None),
+        resource_manager.request_texture("data/textures/skybox/right.jpg", None),
+        resource_manager.request_texture("data/textures/skybox/up.jpg", None),
+        resource_manager.request_texture("data/textures/skybox/down.jpg", None)
     );
 
     // Unwrap everything.
-    let skybox = SkyBox {
+    let skybox = SkyBoxBuilder {
         front: Some(front.unwrap()),
         back: Some(back.unwrap()),
         left: Some(left.unwrap()),
         right: Some(right.unwrap()),
         top: Some(top.unwrap()),
         bottom: Some(bottom.unwrap()),
-    };
+    }
+    .build()
+    .unwrap();
 
     // Set S and T coordinate wrap mode, ClampToEdge will remove any possible seams on edges
     // of the skybox.
-    for skybox_texture in skybox.textures().iter().filter_map(|t| t.clone()) {
-        let mut data = skybox_texture.data_ref();
-        data.set_s_wrap_mode(TextureWrapMode::ClampToEdge);
-        data.set_t_wrap_mode(TextureWrapMode::ClampToEdge);
-    }
+    let skybox_texture = skybox.cubemap().unwrap();
+    let mut data = skybox_texture.data_ref();
+    data.set_s_wrap_mode(TextureWrapMode::ClampToEdge);
+    data.set_t_wrap_mode(TextureWrapMode::ClampToEdge);
 
     skybox
 }
@@ -208,13 +210,16 @@ struct Game {
 }
 
 impl Game {
-    pub async fn new(engine: &mut GameEngine) -> Self {
+    pub async fn new(engine: &mut Engine) -> Self {
         let mut scene = Scene::new();
 
         // Load a scene resource and create its instance.
         engine
             .resource_manager
-            .request_model("data/models/scene.rgs")
+            .request_model(
+                "data/models/scene.rgs",
+                MaterialSearchOptions::UsePathDirectly,
+            )
             .await
             .unwrap()
             .instantiate_geometry(&mut scene);
@@ -225,7 +230,7 @@ impl Game {
         }
     }
 
-    pub fn update(&mut self, engine: &mut GameEngine) {
+    pub fn update(&mut self, engine: &mut Engine) {
         self.player.update(&mut engine.scenes[self.scene]);
     }
 }
@@ -237,7 +242,7 @@ fn main() {
     let event_loop = EventLoop::new();
 
     // Finally create an instance of the engine.
-    let mut engine = GameEngine::new(window_builder, &event_loop, true).unwrap();
+    let mut engine = Engine::new(window_builder, &event_loop, false).unwrap();
 
     // Initialize game instance.
     let mut game = rg3d::core::futures::executor::block_on(Game::new(&mut engine));
@@ -272,7 +277,7 @@ fn main() {
             }
             Event::RedrawRequested(_) => {
                 // Render at max speed - it is not tied to the game code.
-                engine.render(TIMESTEP).unwrap();
+                engine.render().unwrap();
             }
             Event::WindowEvent { event, .. } => match event {
                 WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
@@ -286,7 +291,7 @@ fn main() {
                     // It is very important to handle Resized event from window, because
                     // renderer knows nothing about window size - it must be notified
                     // directly when window size has changed.
-                    engine.renderer.set_frame_size(size.into());
+                    engine.set_frame_size(size.into()).unwrap();
                 }
                 _ => (),
             },
