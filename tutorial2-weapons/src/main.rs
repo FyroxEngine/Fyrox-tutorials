@@ -1,33 +1,38 @@
 use crate::{message::Message, weapon::Weapon};
+use rg3d::core::algebra::Point3;
+use rg3d::core::sstorage::ImmutableString;
+use rg3d::material::{Material, PropertyValue};
 use rg3d::{
     core::{
         algebra::{UnitQuaternion, Vector3},
         color::Color,
         color_gradient::{ColorGradient, GradientPoint},
         math::ray::Ray,
-        numeric_range::NumericRange,
+        parking_lot::Mutex,
         pool::{Handle, Pool},
     },
-    engine::{
-        resource_manager::ResourceManager,
-        Engine,
-        RigidBodyHandle,
-        ColliderHandle
-    },
+    engine::resource_manager::MaterialSearchOptions,
+    engine::{resource_manager::ResourceManager, Engine},
     event::{DeviceEvent, ElementState, Event, MouseButton, VirtualKeyCode, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
-    gui::node::StubNode,
-    physics::{dynamics::RigidBodyBuilder, geometry::ColliderBuilder},
-    scene::mesh::surface::{SurfaceBuilder, SurfaceData},
+    physics3d::{
+        rapier::dynamics::RigidBodyBuilder, rapier::geometry::ColliderBuilder, ColliderHandle,
+        RayCastOptions, RigidBodyHandle,
+    },
     resource::texture::TextureWrapMode,
     scene::{
         base::BaseBuilder,
-        camera::{CameraBuilder, SkyBox},
+        camera::{CameraBuilder, SkyBox, SkyBoxBuilder},
         graph::Graph,
-        mesh::{MeshBuilder, RenderPath},
+        mesh::{
+            surface::{SurfaceBuilder, SurfaceData},
+            MeshBuilder, RenderPath,
+        },
         node::Node,
-        particle_system::{BaseEmitterBuilder, ParticleSystemBuilder, SphereEmitterBuilder},
-        physics::RayCastOptions,
+        particle_system::{
+            emitter::{base::BaseEmitterBuilder, sphere::SphereEmitterBuilder},
+            ParticleSystemBuilder,
+        },
         transform::TransformBuilder,
         Scene,
     },
@@ -37,17 +42,13 @@ use std::{
     path::Path,
     sync::{
         mpsc::{self, Receiver, Sender},
-        Arc, RwLock,
+        Arc,
     },
     time,
 };
 
 pub mod message;
 pub mod weapon;
-
-// Create our own engine type aliases. These specializations are needed, because the engine
-// provides a way to extend UI with custom nodes and messages.
-type GameEngine = Engine<(), StubNode>;
 
 // Our game logic will be updated at 60 Hz rate.
 const TIMESTEP: f32 = 1.0 / 60.0;
@@ -77,31 +78,32 @@ struct Player {
 async fn create_skybox(resource_manager: ResourceManager) -> SkyBox {
     // Load skybox textures in parallel.
     let (front, back, left, right, top, bottom) = rg3d::core::futures::join!(
-        resource_manager.request_texture("data/textures/skybox/front.jpg"),
-        resource_manager.request_texture("data/textures/skybox/back.jpg"),
-        resource_manager.request_texture("data/textures/skybox/left.jpg"),
-        resource_manager.request_texture("data/textures/skybox/right.jpg"),
-        resource_manager.request_texture("data/textures/skybox/up.jpg"),
-        resource_manager.request_texture("data/textures/skybox/down.jpg")
+        resource_manager.request_texture("data/textures/skybox/front.jpg", None),
+        resource_manager.request_texture("data/textures/skybox/back.jpg", None),
+        resource_manager.request_texture("data/textures/skybox/left.jpg", None),
+        resource_manager.request_texture("data/textures/skybox/right.jpg", None),
+        resource_manager.request_texture("data/textures/skybox/up.jpg", None),
+        resource_manager.request_texture("data/textures/skybox/down.jpg", None)
     );
 
     // Unwrap everything.
-    let skybox = SkyBox {
+    let skybox = SkyBoxBuilder {
         front: Some(front.unwrap()),
         back: Some(back.unwrap()),
         left: Some(left.unwrap()),
         right: Some(right.unwrap()),
         top: Some(top.unwrap()),
         bottom: Some(bottom.unwrap()),
-    };
+    }
+    .build()
+    .unwrap();
 
     // Set S and T coordinate wrap mode, ClampToEdge will remove any possible seams on edges
     // of the skybox.
-    for skybox_texture in skybox.textures().iter().filter_map(|t| t.clone()) {
-        let mut data = skybox_texture.data_ref();
-        data.set_s_wrap_mode(TextureWrapMode::ClampToEdge);
-        data.set_t_wrap_mode(TextureWrapMode::ClampToEdge);
-    }
+    let skybox_texture = skybox.cubemap().unwrap();
+    let mut data = skybox_texture.data_ref();
+    data.set_s_wrap_mode(TextureWrapMode::ClampToEdge);
+    data.set_t_wrap_mode(TextureWrapMode::ClampToEdge);
 
     skybox
 }
@@ -117,11 +119,11 @@ fn create_bullet_impact(
         BaseEmitterBuilder::new()
             .with_max_particles(200)
             .with_spawn_rate(1000)
-            .with_size_modifier_range(NumericRange::new(-0.01, -0.0125))
-            .with_size_range(NumericRange::new(0.0010, 0.025))
-            .with_x_velocity_range(NumericRange::new(-0.01, 0.01))
-            .with_y_velocity_range(NumericRange::new(0.017, 0.02))
-            .with_z_velocity_range(NumericRange::new(-0.01, 0.01))
+            .with_size_modifier_range(-0.01..-0.0125)
+            .with_size_range(0.0010..0.025)
+            .with_x_velocity_range(-0.01..0.01)
+            .with_y_velocity_range(0.017..0.02)
+            .with_z_velocity_range(-0.01..0.01)
             .resurrect_particles(false),
     )
     .with_radius(0.01)
@@ -153,7 +155,7 @@ fn create_bullet_impact(
     .with_color_over_lifetime_gradient(color_gradient)
     .with_emitters(vec![emitter])
     // We'll use simple spark texture for each particle.
-    .with_texture(resource_manager.request_texture(Path::new("data/textures/spark.png")))
+    .with_texture(resource_manager.request_texture(Path::new("data/textures/spark.png"), None))
     .build(graph)
 }
 
@@ -232,11 +234,7 @@ impl Player {
         let pivot = &mut scene.graph[self.pivot];
 
         // Borrow rigid body in the physics.
-        let body = scene
-            .physics
-            .bodies
-            .get_mut(&self.rigid_body)
-            .unwrap();
+        let body = scene.physics.bodies.get_mut(&self.rigid_body).unwrap();
 
         // Keep only vertical velocity, and drop horizontal.
         let mut velocity = Vector3::new(0.0, body.linvel().y, 0.0);
@@ -338,7 +336,7 @@ fn create_shot_trail(
         .build();
 
     // Create unit cylinder with caps that faces toward Z axis.
-    let shape = Arc::new(RwLock::new(SurfaceData::make_cylinder(
+    let shape = Arc::new(Mutex::new(SurfaceData::make_cylinder(
         6,     // Count of sides
         1.0,   // Radius
         1.0,   // Height
@@ -346,6 +344,16 @@ fn create_shot_trail(
         // Rotate vertical cylinder around X axis to make it face towards Z axis
         &UnitQuaternion::from_axis_angle(&Vector3::x_axis(), 90.0f32.to_radians()).to_homogeneous(),
     )));
+
+    // Create an instance of standard material for the shot trail.
+    let mut material = Material::standard();
+    material
+        .set_property(
+            &ImmutableString::new("diffuseColor"),
+            // Set yellow-ish color.
+            PropertyValue::Color(Color::from_rgba(255, 255, 0, 120)),
+        )
+        .unwrap();
 
     MeshBuilder::new(
         BaseBuilder::new()
@@ -355,8 +363,7 @@ fn create_shot_trail(
             .with_lifetime(0.25),
     )
     .with_surfaces(vec![SurfaceBuilder::new(shape)
-        // Set yellow-ish color.
-        .with_color(Color::from_rgba(255, 255, 0, 120))
+        .with_material(Arc::new(Mutex::new(material)))
         .build()])
     // Do not cast shadows.
     .with_cast_shadows(false)
@@ -375,7 +382,7 @@ struct Game {
 }
 
 impl Game {
-    pub async fn new(engine: &mut GameEngine) -> Self {
+    pub async fn new(engine: &mut Engine) -> Self {
         // Make message queue.
         let (sender, receiver) = mpsc::channel();
 
@@ -384,7 +391,10 @@ impl Game {
         // Load a scene resource and create its instance.
         engine
             .resource_manager
-            .request_model("data/models/scene.rgs")
+            .request_model(
+                "data/models/scene.rgs",
+                MaterialSearchOptions::UsePathDirectly,
+            )
             .await
             .unwrap()
             .instantiate_geometry(&mut scene);
@@ -417,7 +427,7 @@ impl Game {
         }
     }
 
-    fn shoot_weapon(&mut self, weapon: Handle<Weapon>, engine: &mut GameEngine) {
+    fn shoot_weapon(&mut self, weapon: Handle<Weapon>, engine: &mut Engine) {
         let weapon = &mut self.weapons[weapon];
 
         if weapon.can_shoot() {
@@ -438,10 +448,11 @@ impl Game {
 
             scene.physics.cast_ray(
                 RayCastOptions {
-                    ray,
+                    ray_origin: Point3::from(ray.origin),
                     max_len: ray.dir.norm(),
                     groups: Default::default(),
                     sort_results: true, // We need intersections to be sorted from closest to furthest.
+                    ray_direction: ray.dir,
                 },
                 &mut intersections,
             );
@@ -456,15 +467,17 @@ impl Game {
                 //
 
                 // For now just apply some force at the point of impact.
-                let collider = scene
+                let colliders_parent = scene
                     .physics
                     .colliders
                     .get(&intersection.collider)
+                    .unwrap()
+                    .parent()
                     .unwrap();
                 scene
                     .physics
                     .bodies
-                    .native_mut(collider.parent().unwrap())
+                    .native_mut(colliders_parent)
                     .unwrap()
                     .apply_force_at_point(
                         ray.dir.normalize().scale(10.0),
@@ -498,7 +511,7 @@ impl Game {
         }
     }
 
-    pub fn update(&mut self, engine: &mut GameEngine, dt: f32) {
+    pub fn update(&mut self, engine: &mut Engine, dt: f32) {
         let scene = &mut engine.scenes[self.scene];
 
         self.player.update(scene);
@@ -526,7 +539,7 @@ fn main() {
     let event_loop = EventLoop::new();
 
     // Finally create an instance of the engine.
-    let mut engine = GameEngine::new(window_builder, &event_loop, true).unwrap();
+    let mut engine = Engine::new(window_builder, &event_loop, true).unwrap();
 
     // Initialize game instance.
     let mut game = rg3d::core::futures::executor::block_on(Game::new(&mut engine));
@@ -561,7 +574,7 @@ fn main() {
             }
             Event::RedrawRequested(_) => {
                 // Render at max speed - it is not tied to the game code.
-                engine.render(TIMESTEP).unwrap();
+                engine.render().unwrap();
             }
             Event::WindowEvent { event, .. } => match event {
                 WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
@@ -575,7 +588,7 @@ fn main() {
                     // It is very important to handle Resized event from window, because
                     // renderer knows nothing about window size - it must be notified
                     // directly when window size has changed.
-                    engine.renderer.set_frame_size(size.into());
+                    engine.set_frame_size(size.into()).unwrap();
                 }
                 _ => (),
             },

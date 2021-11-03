@@ -1,8 +1,8 @@
-[INFO]: Shader FlatShader_VertexShader compiled!
+[INFO]: Shader BlurShader_VertexShader compiled!
 
-[INFO]: Shader FlatShader_FragmentShader compiled!
+[INFO]: Shader BlurShader_FragmentShader compiled!
 
-[INFO]: Shader FlatShader linked!
+[INFO]: Shader BlurShader linked!
 
 [INFO]: Shader SsaoShader_VertexShader compiled!
 
@@ -10,23 +10,23 @@
 
 [INFO]: Shader SsaoShader linked!
 
-[INFO]: Shader DeferredLightShader_VertexShader compiled!
+[INFO]: Shader SpotLightShader_VertexShader compiled!
 
-[INFO]: Shader DeferredLightShader_FragmentShader compiled!
+[INFO]: Shader SpotLightShader_FragmentShader compiled!
 
-[INFO]: Shader DeferredLightShader linked!
+[INFO]: Shader SpotLightShader linked!
 
-[INFO]: Shader DeferredLightShader_VertexShader compiled!
+[INFO]: Shader PointLightShader_VertexShader compiled!
 
-[INFO]: Shader DeferredLightShader_FragmentShader compiled!
+[INFO]: Shader PointLightShader_FragmentShader compiled!
 
-[INFO]: Shader DeferredLightShader linked!
+[INFO]: Shader PointLightShader linked!
 
-[INFO]: Shader DeferredLightShader_VertexShader compiled!
+[INFO]: Shader DirectionalLightShader_VertexShader compiled!
 
-[INFO]: Shader DeferredLightShader_FragmentShader compiled!
+[INFO]: Shader DirectionalLightShader_FragmentShader compiled!
 
-[INFO]: Shader DeferredLightShader linked!
+[INFO]: Shader DirectionalLightShader linked!
 
 [INFO]: Shader AmbientLightShader_VertexShader compiled!
 
@@ -40,17 +40,11 @@
 
 [INFO]: Shader FlatShader linked!
 
-[INFO]: Shader SpotShadowMapShader_VertexShader compiled!
+[INFO]: Shader SkyboxShader_VertexShader compiled!
 
-[INFO]: Shader SpotShadowMapShader_FragmentShader compiled!
+[INFO]: Shader SkyboxShader_FragmentShader compiled!
 
-[INFO]: Shader SpotShadowMapShader linked!
-
-[INFO]: Shader PointShadowMapShader_VertexShader compiled!
-
-[INFO]: Shader PointShadowMapShader_FragmentShader compiled!
-
-[INFO]: Shader PointShadowMapShader linked!
+[INFO]: Shader SkyboxShader linked!
 
 [INFO]: Shader SpotVolumetricLight_VertexShader compiled!
 
@@ -76,11 +70,11 @@
 
 [INFO]: Shader FlatShader linked!
 
-[INFO]: Shader FlatShader_VertexShader compiled!
+[INFO]: Shader SpriteShader_VertexShader compiled!
 
-[INFO]: Shader FlatShader_FragmentShader compiled!
+[INFO]: Shader SpriteShader_FragmentShader compiled!
 
-[INFO]: Shader FlatShader linked!
+[INFO]: Shader SpriteShader linked!
 
 [INFO]: Shader UIShader_VertexShader compiled!
 
@@ -100,12 +94,6 @@
 
 [INFO]: Shader DebugShader linked!
 
-[INFO]: Shader ForwardShader_VertexShader compiled!
-
-[INFO]: Shader ForwardShader_FragmentShader compiled!
-
-[INFO]: Shader ForwardShader linked!
-
 [INFO]: Shader FXAAShader_VertexShader compiled!
 
 [INFO]: Shader FXAAShader_FragmentShader compiled!
@@ -119,8 +107,8 @@
 [INFO]: Shader SpriteShader2D linked!
 
 [INFO]: Trying to load "data/models/barrel.FBX"
-[INFO]: FBX "data/models/barrel.FBX" loaded in 1 ms
-	- Parsing - 1 ms
+[INFO]: FBX "data/models/barrel.FBX" loaded in 0 ms
+	- Parsing - 0 ms
 	- DOM Prepare - 0 ms
 	- Conversion - 0 ms
 [INFO]: Model "data/models/barrel.FBX" is loaded!
@@ -137,80 +125,116 @@
 [INFO]: Model "data/models/scene.rgs" is loaded!
 [INFO]: Geometry for trimesh RigidBodyHandle(b774ac19-6c62-4244-94b4-39ea7899db03) was restored from node at handle [Idx: 2; Gen: 1]!
 [INFO]: Resource data/models/scene.rgs was successfully embedded into physics world!
-[INFO]: Texture "data/textures/barrel_normal.jpg" is loaded in 31.8388ms!
-[INFO]: Texture "data/textures/barrel.jpg" is loaded in 35.7221ms!
-[INFO]: Texture "data/textures/skybox/down.jpg" is loaded in 72.4686ms!
-[INFO]: Texture "data/textures/skybox/front.jpg" is loaded in 73.3721ms!
-[INFO]: Texture "data/textures/skybox/left.jpg" is loaded in 76.8093ms!
-[INFO]: Texture "data/textures/skybox/right.jpg" is loaded in 81.9713ms!
-[INFO]: Texture "data/textures/floor.jpg" is loaded in 85.4829ms!
-[INFO]: Texture "data/textures/skybox/up.jpg" is loaded in 86.9757ms!
-[INFO]: Texture "data/textures/skybox/back.jpg" is loaded in 90.6559ms!
+[INFO]: Texture "data/models\\barrel_normal.jpg" is loaded in 19.1548ms!
+[INFO]: Texture "data/models\\barrel.jpg" is loaded in 20.6952ms!
+[INFO]: Texture "data/textures/skybox/down.jpg" is loaded in 46.9472ms!
+[INFO]: Texture "data/textures/skybox/left.jpg" is loaded in 50.4641ms!
+[INFO]: Texture "data/textures/skybox/right.jpg" is loaded in 53.4912ms!
+[INFO]: Texture "data/textures/skybox/up.jpg" is loaded in 60.3991ms!
+[INFO]: Texture "data/textures/floor.jpg" is loaded in 65.4409ms!
+[INFO]: Texture "data/textures/skybox/front.jpg" is loaded in 66.5595ms!
+[INFO]: Texture "data/textures/skybox/back.jpg" is loaded in 68.2523ms!
 [INFO]: Trying to load "data/models/m4.FBX"
-[INFO]: FBX "data/models/m4.FBX" loaded in 30 ms
-	- Parsing - 19 ms
+[INFO]: FBX "data/models/m4.FBX" loaded in 27 ms
+	- Parsing - 18 ms
 	- DOM Prepare - 1 ms
-	- Conversion - 9 ms
+	- Conversion - 7 ms
 [INFO]: Model "data/models/m4.FBX" is loaded!
 [INFO]: Resource data/models/m4.FBX was successfully embedded into physics world!
-[INFO]: Texture "data/textures/M4_Magazine_normal.png" is loaded in 64.2267ms!
-[INFO]: Texture "data/textures/M4_Magazine.png" is loaded in 68.0138ms!
-[INFO]: Texture "data/textures/M4_Sight_normal.png" is loaded in 69.1125ms!
-[INFO]: Texture "data/textures/M4_Sight.png" is loaded in 79.018ms!
-[INFO]: Texture "data/textures/M4_Body.png" is loaded in 80.772ms!
-[INFO]: Texture "data/textures/M4_Body_normal.png" is loaded in 83.8923ms!
-[INFO]: Shader GBufferShader_VertexShader compiled!
+[INFO]: Shader DecalShader_VertexShader compiled!
 
-[INFO]: Shader GBufferShader_FragmentShader compiled!
+[INFO]: Shader DecalShader_FragmentShader compiled!
 
-[INFO]: Shader GBufferShader linked!
+[INFO]: Shader DecalShader linked!
 
-[INFO]: Shader GBufferInstancingShader_VertexShader compiled!
+[INFO]: Shader AdaptationShader_VertexShader compiled!
 
-[INFO]: Shader GBufferInstancingShader_FragmentShader compiled!
+[INFO]: Shader AdaptationShader_FragmentShader compiled!
 
-[INFO]: Shader GBufferInstancingShader linked!
+[INFO]: Shader AdaptationShader linked!
 
-[INFO]: Shader GBufferLightmapShader_VertexShader compiled!
+[INFO]: Shader LuminanceShader_VertexShader compiled!
 
-[INFO]: Shader GBufferLightmapShader_FragmentShader compiled!
+[INFO]: Shader LuminanceShader_FragmentShader compiled!
 
-[INFO]: Shader GBufferLightmapShader linked!
+[INFO]: Shader LuminanceShader linked!
 
-[INFO]: Shader GBufferLightmapInstancingShader_VertexShader compiled!
+[INFO]: Shader DownscaleShader_VertexShader compiled!
 
-[INFO]: Shader GBufferLightmapInstancingShader_FragmentShader compiled!
+[INFO]: Shader DownscaleShader_FragmentShader compiled!
 
-[INFO]: Shader GBufferLightmapInstancingShader linked!
+[INFO]: Shader DownscaleShader linked!
 
-[INFO]: Shader GBufferTerrainShader_VertexShader compiled!
+[INFO]: Shader HdrToLdrShader_VertexShader compiled!
 
-[INFO]: Shader GBufferTerrainShader_FragmentShader compiled!
+[INFO]: Shader HdrToLdrShader_FragmentShader compiled!
 
-[INFO]: Shader GBufferTerrainShader linked!
+[INFO]: Shader HdrToLdrShader linked!
 
-[INFO]: Shader GBufferTerrainInstancingShader_VertexShader compiled!
+[INFO]: Shader BloomShader_VertexShader compiled!
 
-[INFO]: Shader GBufferTerrainInstancingShader_FragmentShader compiled!
+[INFO]: Shader BloomShader_FragmentShader compiled!
 
-[INFO]: Shader GBufferTerrainInstancingShader linked!
+[INFO]: Shader BloomShader linked!
 
-[INFO]: Shader GBufferTerrainLightmapShader_VertexShader compiled!
+[INFO]: Shader GaussianBlurShader_VertexShader compiled!
 
-[INFO]: Shader GBufferTerrainLightmapShader_FragmentShader compiled!
+[INFO]: Shader GaussianBlurShader_FragmentShader compiled!
 
-[INFO]: Shader GBufferTerrainLightmapShader linked!
+[INFO]: Shader GaussianBlurShader linked!
 
-[INFO]: Shader GBufferTerrainLightmapInstancingShader_VertexShader compiled!
+[INFO]: Shader StandardShader_GBuffer_VertexShader compiled!
 
-[INFO]: Shader GBufferTerrainLightmapInstancingShader_FragmentShader compiled!
+[INFO]: Shader StandardShader_GBuffer_FragmentShader compiled!
 
-[INFO]: Shader GBufferTerrainLightmapInstancingShader linked!
+[INFO]: Shader StandardShader_GBuffer linked!
 
-[INFO]: Shader GBufferShader_VertexShader compiled!
+[INFO]: Shader StandardShader_Forward_VertexShader compiled!
 
-[INFO]: Shader GBufferShader_FragmentShader compiled!
+[INFO]: Shader StandardShader_Forward_FragmentShader compiled!
 
-[INFO]: Shader GBufferShader linked!
+[INFO]: Shader StandardShader_Forward linked!
 
-[INFO]: Texture "data/textures/spark.png" is loaded in 18.7266ms!
+[INFO]: Shader StandardShader_SpotShadow_VertexShader compiled!
+
+[INFO]: Shader StandardShader_SpotShadow_FragmentShader compiled!
+
+[INFO]: Shader StandardShader_SpotShadow linked!
+
+[INFO]: Shader StandardShader_PointShadow_VertexShader compiled!
+
+[INFO]: Shader StandardShader_PointShadow_FragmentShader compiled!
+
+[INFO]: Shader StandardShader_PointShadow linked!
+
+[INFO]: Shader StandardShader_GBuffer_VertexShader compiled!
+
+[INFO]: Shader StandardShader_GBuffer_FragmentShader compiled!
+
+[INFO]: Shader StandardShader_GBuffer linked!
+
+[INFO]: Shader StandardShader_Forward_VertexShader compiled!
+
+[INFO]: Shader StandardShader_Forward_FragmentShader compiled!
+
+[INFO]: Shader StandardShader_Forward linked!
+
+[INFO]: Shader StandardShader_SpotShadow_VertexShader compiled!
+
+[INFO]: Shader StandardShader_SpotShadow_FragmentShader compiled!
+
+[INFO]: Shader StandardShader_SpotShadow linked!
+
+[INFO]: Shader StandardShader_PointShadow_VertexShader compiled!
+
+[INFO]: Shader StandardShader_PointShadow_FragmentShader compiled!
+
+[INFO]: Shader StandardShader_PointShadow linked!
+
+[INFO]: Texture "data/models\\M4_Sight_normal.png" is loaded in 41.8832ms!
+[INFO]: Texture "data/models\\M4_Sight.png" is loaded in 46.8736ms!
+[INFO]: Texture "data/models\\M4_Magazine.png" is loaded in 48.4185ms!
+[INFO]: Texture "data/models\\M4_Magazine_normal.png" is loaded in 48.9531ms!
+[INFO]: Texture "data/models\\M4_Body.png" is loaded in 47.615ms!
+[INFO]: Texture "data/models\\M4_Body_normal.png" is loaded in 56.2171ms!
+[INFO]: Texture "data/textures/spark.png" is loaded in 10.6693ms!

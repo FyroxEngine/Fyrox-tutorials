@@ -1,3 +1,4 @@
+use rg3d::engine::resource_manager::MaterialSearchOptions;
 use rg3d::scene::graph::Graph;
 use rg3d::{
     core::{algebra::Vector3, math::Vector3Ext, pool::Handle},
@@ -17,7 +18,7 @@ impl Weapon {
     pub async fn new(scene: &mut Scene, resource_manager: ResourceManager) -> Self {
         // Yeah, you need only few lines of code to load a model of any complexity.
         let model = resource_manager
-            .request_model("data/models/m4.FBX")
+            .request_model("data/models/m4.FBX", MaterialSearchOptions::RecursiveUp)
             .await
             .unwrap()
             .instantiate_geometry(scene);
