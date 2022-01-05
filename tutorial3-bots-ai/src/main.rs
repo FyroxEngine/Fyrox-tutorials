@@ -1,10 +1,13 @@
 use crate::{bot::Bot, message::Message, weapon::Weapon};
 use rg3d::core::algebra::Point3;
+use rg3d::core::math::vector_to_quat;
 use rg3d::core::parking_lot::Mutex;
 use rg3d::core::sstorage::ImmutableString;
-use rg3d::engine::resource_manager::MaterialSearchOptions;
 use rg3d::material::{Material, PropertyValue};
 use rg3d::scene::camera::SkyBoxBuilder;
+use rg3d::scene::collider::{ColliderBuilder, ColliderShape};
+use rg3d::scene::graph::physics::RayCastOptions;
+use rg3d::scene::rigidbody::RigidBodyBuilder;
 use rg3d::{
     core::{
         algebra::{UnitQuaternion, Vector3},
@@ -16,10 +19,6 @@ use rg3d::{
     engine::{resource_manager::ResourceManager, Engine},
     event::{DeviceEvent, ElementState, Event, MouseButton, VirtualKeyCode, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
-    physics3d::{
-        rapier::dynamics::RigidBodyBuilder, rapier::geometry::ColliderBuilder, ColliderHandle,
-        RayCastOptions, RigidBodyHandle,
-    },
     resource::texture::TextureWrapMode,
     scene::{
         base::BaseBuilder,
@@ -67,25 +66,24 @@ struct InputController {
 }
 
 struct Player {
-    pivot: Handle<Node>,
     camera: Handle<Node>,
-    rigid_body: RigidBodyHandle,
+    rigid_body: Handle<Node>,
     controller: InputController,
     weapon_pivot: Handle<Node>,
     sender: Sender<Message>,
     weapon: Handle<Weapon>,
-    collider: ColliderHandle,
+    collider: Handle<Node>,
 }
 
 async fn create_skybox(resource_manager: ResourceManager) -> SkyBox {
     // Load skybox textures in parallel.
     let (front, back, left, right, top, bottom) = rg3d::core::futures::join!(
-        resource_manager.request_texture("data/textures/skybox/front.jpg", None),
-        resource_manager.request_texture("data/textures/skybox/back.jpg", None),
-        resource_manager.request_texture("data/textures/skybox/left.jpg", None),
-        resource_manager.request_texture("data/textures/skybox/right.jpg", None),
-        resource_manager.request_texture("data/textures/skybox/up.jpg", None),
-        resource_manager.request_texture("data/textures/skybox/down.jpg", None)
+        resource_manager.request_texture("data/textures/skybox/front.jpg"),
+        resource_manager.request_texture("data/textures/skybox/back.jpg"),
+        resource_manager.request_texture("data/textures/skybox/left.jpg"),
+        resource_manager.request_texture("data/textures/skybox/right.jpg"),
+        resource_manager.request_texture("data/textures/skybox/up.jpg"),
+        resource_manager.request_texture("data/textures/skybox/down.jpg")
     );
 
     // Unwrap everything.
@@ -120,12 +118,13 @@ fn create_bullet_impact(
     let emitter = SphereEmitterBuilder::new(
         BaseEmitterBuilder::new()
             .with_max_particles(200)
-            .with_spawn_rate(1000)
+            .with_spawn_rate(3000)
             .with_size_modifier_range(-0.01..-0.0125)
-            .with_size_range(0.0010..0.025)
-            .with_x_velocity_range(-0.01..0.01)
-            .with_y_velocity_range(0.017..0.02)
-            .with_z_velocity_range(-0.01..0.01)
+            .with_size_range(0.0075..0.015)
+            .with_lifetime_range(0.05..0.2)
+            .with_x_velocity_range(-0.0075..0.0075)
+            .with_y_velocity_range(-0.0075..0.0075)
+            .with_z_velocity_range(0.025..0.045)
             .resurrect_particles(false),
     )
     .with_radius(0.01)
@@ -153,11 +152,11 @@ fn create_bullet_impact(
             .with_lifetime(1.0)
             .with_local_transform(transform),
     )
-    .with_acceleration(Vector3::new(0.0, -10.0, 0.0))
+    .with_acceleration(Vector3::new(0.0, 0.0, 0.0))
     .with_color_over_lifetime_gradient(color_gradient)
     .with_emitters(vec![emitter])
     // We'll use simple spark texture for each particle.
-    .with_texture(resource_manager.request_texture(Path::new("data/textures/spark.png"), None))
+    .with_texture(resource_manager.request_texture(Path::new("data/textures/spark.png")))
     .build(graph)
 }
 
@@ -167,55 +166,60 @@ impl Player {
         resource_manager: ResourceManager,
         sender: Sender<Message>,
     ) -> Self {
-        // Create a pivot and attach a camera to it, move it a bit up to "emulate" head.
+        // Create rigid body with a camera, move it a bit up to "emulate" head.
         let camera;
         let weapon_pivot;
-        let pivot = BaseBuilder::new()
-            .with_children(&[{
-                camera = CameraBuilder::new(
-                    BaseBuilder::new()
-                        .with_local_transform(
-                            TransformBuilder::new()
-                                .with_local_position(Vector3::new(0.0, 0.25, 0.0))
-                                .build(),
-                        )
-                        .with_children(&[{
-                            weapon_pivot = BaseBuilder::new()
+        let collider;
+        let rigid_body_handle = RigidBodyBuilder::new(
+            BaseBuilder::new()
+                .with_local_transform(
+                    TransformBuilder::new()
+                        // Offset player a bit.
+                        .with_local_position(Vector3::new(0.0, 1.0, -1.0))
+                        .build(),
+                )
+                .with_children(&[
+                    {
+                        camera = CameraBuilder::new(
+                            BaseBuilder::new()
                                 .with_local_transform(
                                     TransformBuilder::new()
-                                        .with_local_position(Vector3::new(-0.1, -0.05, 0.015))
+                                        .with_local_position(Vector3::new(0.0, 0.25, 0.0))
                                         .build(),
                                 )
-                                .build(&mut scene.graph);
-                            weapon_pivot
-                        }]),
-                )
-                .with_skybox(create_skybox(resource_manager).await)
-                .build(&mut scene.graph);
-                camera
-            }])
-            .build(&mut scene.graph);
-
-        // Create rigid body, it will be used for interaction with the world.
-        let rigid_body_handle = scene.physics.add_body(
-            RigidBodyBuilder::new_dynamic()
-                .lock_rotations() // We don't want the player to tilt.
-                .translation(Vector3::new(0.0, 1.0, -1.0)) // Offset player a bit.
-                .build(),
-        );
-
-        // Add capsule collider for the rigid body.
-        let collider = scene.physics.add_collider(
-            ColliderBuilder::capsule_y(0.25, 0.2).build(),
-            &rigid_body_handle,
-        );
-
-        // Bind pivot with rigid body. Scene will automatically sync transform of the pivot
-        // with the transform of the rigid body.
-        scene.physics_binder.bind(pivot, rigid_body_handle);
+                                .with_children(&[{
+                                    weapon_pivot = BaseBuilder::new()
+                                        .with_local_transform(
+                                            TransformBuilder::new()
+                                                .with_local_position(Vector3::new(
+                                                    -0.1, -0.05, 0.015,
+                                                ))
+                                                .build(),
+                                        )
+                                        .build(&mut scene.graph);
+                                    weapon_pivot
+                                }]),
+                        )
+                        .with_skybox(create_skybox(resource_manager).await)
+                        .build(&mut scene.graph);
+                        camera
+                    },
+                    // Add capsule collider for the rigid body.
+                    {
+                        collider = ColliderBuilder::new(BaseBuilder::new())
+                            .with_shape(ColliderShape::capsule_y(0.25, 0.2))
+                            .build(&mut scene.graph);
+                        collider
+                    },
+                ]),
+        )
+        // We don't want the player to tilt.
+        .with_locked_rotations(true)
+        // We don't want the rigid body to sleep (be excluded from simulation)
+        .with_can_sleep(false)
+        .build(&mut scene.graph);
 
         Self {
-            pivot,
             camera,
             weapon_pivot,
             rigid_body: rigid_body_handle,
@@ -231,43 +235,40 @@ impl Player {
         scene.graph[self.camera].local_transform_mut().set_rotation(
             UnitQuaternion::from_axis_angle(&Vector3::x_axis(), self.controller.pitch.to_radians()),
         );
-
-        // Borrow the pivot in the graph.
-        let pivot = &mut scene.graph[self.pivot];
-
-        // Borrow rigid body in the physics.
-        let body = scene.physics.bodies.get_mut(&self.rigid_body).unwrap();
+        // Borrow rigid body node.
+        let body = scene.graph[self.rigid_body].as_rigid_body_mut();
 
         // Keep only vertical velocity, and drop horizontal.
-        let mut velocity = Vector3::new(0.0, body.linvel().y, 0.0);
+        let mut velocity = Vector3::new(0.0, body.lin_vel().y, 0.0);
 
         // Change the velocity depending on the keys pressed.
         if self.controller.move_forward {
-            // If we moving forward then add "look" vector of the pivot.
-            velocity += pivot.look_vector();
+            // If we moving forward then add "look" vector of the body.
+            velocity += body.look_vector();
         }
         if self.controller.move_backward {
-            // If we moving backward then subtract "look" vector of the pivot.
-            velocity -= pivot.look_vector();
+            // If we moving backward then subtract "look" vector of the body.
+            velocity -= body.look_vector();
         }
         if self.controller.move_left {
-            // If we moving left then add "side" vector of the pivot.
-            velocity += pivot.side_vector();
+            // If we moving left then add "side" vector of the body.
+            velocity += body.side_vector();
         }
         if self.controller.move_right {
-            // If we moving right then subtract "side" vector of the pivot.
-            velocity -= pivot.side_vector();
+            // If we moving right then subtract "side" vector of the body.
+            velocity -= body.side_vector();
         }
 
         // Finally new linear velocity.
-        body.set_linvel(velocity, true);
+        body.set_lin_vel(velocity);
 
         // Change the rotation of the rigid body according to current yaw. These lines responsible for
         // left-right rotation.
-        let mut position = *body.position();
-        position.rotation =
-            UnitQuaternion::from_axis_angle(&Vector3::y_axis(), self.controller.yaw.to_radians());
-        body.set_position(position, true);
+        body.local_transform_mut()
+            .set_rotation(UnitQuaternion::from_axis_angle(
+                &Vector3::y_axis(),
+                self.controller.yaw.to_radians(),
+            ));
 
         if self.controller.shoot {
             self.sender
@@ -394,10 +395,7 @@ impl Game {
         // Load a scene resource and create its instance.
         engine
             .resource_manager
-            .request_model(
-                "data/models/scene.rgs",
-                MaterialSearchOptions::UsePathDirectly,
-            )
+            .request_model("data/models/scene.rgs")
             .await
             .unwrap()
             .instantiate_geometry(&mut scene);
@@ -462,7 +460,7 @@ impl Game {
 
             let mut intersections = Vec::new();
 
-            scene.physics.cast_ray(
+            scene.graph.physics.cast_ray(
                 RayCastOptions {
                     ray_origin: Point3::from(ray.origin),
                     max_len: ray.dir.norm(),
@@ -483,31 +481,16 @@ impl Game {
                 //
 
                 // For now just apply some force at the point of impact.
-                let colliders_parent = scene
-                    .physics
-                    .colliders
-                    .get(&intersection.collider)
-                    .unwrap()
-                    .parent()
-                    .unwrap();
-                scene
-                    .physics
-                    .bodies
-                    .native_mut(colliders_parent)
-                    .unwrap()
-                    .apply_force_at_point(
-                        ray.dir.normalize().scale(10.0),
-                        intersection.position,
-                        true,
-                    );
+                let colliders_parent = scene.graph[intersection.collider].parent();
+                let picked_rigid_body = scene.graph[colliders_parent].as_rigid_body_mut();
+                picked_rigid_body.apply_force_at_point(
+                    ray.dir.normalize().scale(10.0),
+                    intersection.position.coords,
+                );
+                picked_rigid_body.wake_up();
 
                 // Add bullet impact effect.
-                let effect_orientation = if intersection.normal.normalize() == Vector3::y() {
-                    // Handle singularity when normal of impact point is collinear with Y axis.
-                    UnitQuaternion::from_axis_angle(&Vector3::y_axis(), 0.0)
-                } else {
-                    UnitQuaternion::face_towards(&intersection.normal, &Vector3::y())
-                };
+                let effect_orientation = vector_to_quat(intersection.normal);
 
                 create_bullet_impact(
                     &mut scene.graph,
@@ -536,7 +519,7 @@ impl Game {
             weapon.update(dt, &mut scene.graph);
         }
 
-        let target = scene.graph[self.player.pivot].global_position();
+        let target = scene.graph[self.player.rigid_body].global_position();
 
         for bot in self.bots.iter_mut() {
             bot.update(scene, dt, target);

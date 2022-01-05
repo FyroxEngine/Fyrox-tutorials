@@ -1,4 +1,6 @@
-use rg3d::engine::resource_manager::MaterialSearchOptions;
+use rg3d::scene::collider::{ColliderBuilder, ColliderShape};
+use rg3d::scene::rigidbody::RigidBodyBuilder;
+use rg3d::scene::transform::TransformBuilder;
 use rg3d::{
     animation::{
         machine::{Machine, Parameter, PoseNode, State, Transition},
@@ -9,18 +11,13 @@ use rg3d::{
         pool::Handle,
     },
     engine::resource_manager::ResourceManager,
-    physics3d::{
-        rapier::dynamics::RigidBodyBuilder, rapier::geometry::ColliderBuilder, ColliderHandle,
-        RigidBodyHandle,
-    },
     resource::model::Model,
     scene::{base::BaseBuilder, node::Node, Scene},
 };
 
 pub struct Bot {
-    pivot: Handle<Node>,
-    rigid_body: RigidBodyHandle,
-    collider: ColliderHandle,
+    rigid_body: Handle<Node>,
+    collider: Handle<Node>,
     machine: BotAnimationMachine,
     follow_target: bool,
 }
@@ -33,7 +30,7 @@ impl Bot {
     ) -> Self {
         // Load bot 3D model as usual.
         let model = resource_manager
-            .request_model("data/models/zombie.fbx", MaterialSearchOptions::RecursiveUp)
+            .request_model("data/models/zombie.fbx")
             .await
             .unwrap()
             .instantiate_geometry(scene);
@@ -45,30 +42,33 @@ impl Bot {
             // Scale the model because it is too big.
             .set_scale(Vector3::new(0.0047, 0.0047, 0.0047));
 
-        let pivot = BaseBuilder::new()
-            .with_children(&[model])
-            .build(&mut scene.graph);
-
-        // Create rigid body, it will be used for interaction with the world.
-        let rigid_body = scene.physics.add_body(
-            RigidBodyBuilder::new_dynamic()
-                .lock_rotations() // We don't want a bot to tilt.
-                .translation(Vector3::new(position.x, position.y, position.z)) // Set desired position.
-                .build(),
-        );
-
-        // Add capsule collider for the rigid body.
-        let collider = scene
-            .physics
-            .add_collider(ColliderBuilder::capsule_y(0.25, 0.2).build(), &rigid_body);
-
-        // Bind pivot with rigid body. Scene will automatically sync transform of the pivot
-        // with the transform of the rigid body.
-        scene.physics_binder.bind(pivot, rigid_body);
+        let collider;
+        let rigid_body = RigidBodyBuilder::new(
+            BaseBuilder::new()
+                .with_local_transform(
+                    TransformBuilder::new()
+                        .with_local_position(Vector3::new(position.x, position.y, position.z))
+                        .build(),
+                )
+                .with_children(&[
+                    // Attach model to the rigid body.
+                    model,
+                    // Add capsule collider for the rigid body.
+                    {
+                        collider = ColliderBuilder::new(BaseBuilder::new())
+                            .with_shape(ColliderShape::capsule_y(0.25, 0.2))
+                            .build(&mut scene.graph);
+                        collider
+                    },
+                ]),
+        )
+        // We don't want a bot to tilt.
+        .with_locked_rotations(true)
+        .with_can_sleep(false)
+        .build(&mut scene.graph);
 
         Self {
             machine: BotAnimationMachine::new(scene, model, resource_manager).await,
-            pivot,
             rigid_body,
             collider,
             follow_target: false,
@@ -79,7 +79,7 @@ impl Bot {
         let attack_distance = 0.6;
 
         // Simple AI - follow target by a straight line.
-        let self_position = scene.graph[self.pivot].global_position();
+        let self_position = scene.graph[self.rigid_body].global_position();
         let direction = target - self_position;
 
         // Distance to target.
@@ -90,15 +90,15 @@ impl Bot {
         }
 
         if self.follow_target && distance != 0.0 {
-            let rigid_body = scene.physics.bodies.get_mut(&self.rigid_body).unwrap();
+            let rigid_body = scene.graph[self.rigid_body].as_rigid_body_mut();
 
             // Make sure bot is facing towards the target.
-            let mut position = *rigid_body.position();
-            position.rotation = UnitQuaternion::face_towards(
-                &Vector3::new(direction.x, 0.0, direction.z),
-                &Vector3::y_axis(),
-            );
-            rigid_body.set_position(position, true);
+            rigid_body
+                .local_transform_mut()
+                .set_rotation(UnitQuaternion::face_towards(
+                    &Vector3::new(direction.x, 0.0, direction.z),
+                    &Vector3::y_axis(),
+                ));
 
             // Move only if we're far enough from the target.
             if distance > attack_distance {
@@ -106,9 +106,9 @@ impl Bot {
                 let xz_velocity = direction.scale(1.0 / distance).scale(0.9);
 
                 let new_velocity =
-                    Vector3::new(xz_velocity.x, rigid_body.linvel().y, xz_velocity.z);
+                    Vector3::new(xz_velocity.x, rigid_body.lin_vel().y, xz_velocity.z);
 
-                rigid_body.set_linvel(new_velocity, true);
+                rigid_body.set_lin_vel(new_velocity);
             }
         }
 
@@ -172,18 +172,9 @@ impl BotAnimationMachine {
 
         // Load animations in parallel.
         let (walk_animation_resource, idle_animation_resource, attack_animation_resource) = rg3d::core::futures::join!(
-            resource_manager.request_model(
-                "data/animations/zombie_walk.fbx",
-                MaterialSearchOptions::RecursiveUp
-            ),
-            resource_manager.request_model(
-                "data/animations/zombie_idle.fbx",
-                MaterialSearchOptions::RecursiveUp
-            ),
-            resource_manager.request_model(
-                "data/animations/zombie_attack.fbx",
-                MaterialSearchOptions::RecursiveUp
-            ),
+            resource_manager.request_model("data/animations/zombie_walk.fbx"),
+            resource_manager.request_model("data/animations/zombie_idle.fbx"),
+            resource_manager.request_model("data/animations/zombie_attack.fbx"),
         );
 
         // Now create three states with different animations.

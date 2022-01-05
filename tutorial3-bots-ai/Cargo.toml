@@ -7,4 +7,4 @@ edition = "2018"
 [dependencies]
 # Use specific version from GitHub, because engine changes rapidly and we must use specific version
 # to make sure it compiles.
-rg3d = { git = "https://github.com/rg3dengine/rg3d", rev = "a3c3d678c361aa72fc44c36f3e37adc20a54f311" }
+rg3d = { git = "https://github.com/rg3dengine/rg3d", rev = "431c8dc16d75f7b8755a7ac6a7b43bd43fdcfca0" }
