@@ -1,117 +1,67 @@
-[INFO]: Shader BlurShader_VertexShader compiled!
-
-[INFO]: Shader BlurShader_FragmentShader compiled!
-
-[INFO]: Shader BlurShader linked!
-
-[INFO]: Shader SsaoShader_VertexShader compiled!
-
-[INFO]: Shader SsaoShader_FragmentShader compiled!
-
-[INFO]: Shader SsaoShader linked!
-
-[INFO]: Shader SpotLightShader_VertexShader compiled!
-
-[INFO]: Shader SpotLightShader_FragmentShader compiled!
-
-[INFO]: Shader SpotLightShader linked!
-
-[INFO]: Shader PointLightShader_VertexShader compiled!
-
-[INFO]: Shader PointLightShader_FragmentShader compiled!
-
-[INFO]: Shader PointLightShader linked!
-
-[INFO]: Shader DirectionalLightShader_VertexShader compiled!
-
-[INFO]: Shader DirectionalLightShader_FragmentShader compiled!
-
-[INFO]: Shader DirectionalLightShader linked!
-
-[INFO]: Shader AmbientLightShader_VertexShader compiled!
-
-[INFO]: Shader AmbientLightShader_FragmentShader compiled!
-
-[INFO]: Shader AmbientLightShader linked!
-
-[INFO]: Shader FlatShader_VertexShader compiled!
-
-[INFO]: Shader FlatShader_FragmentShader compiled!
-
-[INFO]: Shader FlatShader linked!
-
-[INFO]: Shader SkyboxShader_VertexShader compiled!
-
-[INFO]: Shader SkyboxShader_FragmentShader compiled!
-
-[INFO]: Shader SkyboxShader linked!
-
-[INFO]: Shader SpotVolumetricLight_VertexShader compiled!
-
-[INFO]: Shader SpotVolumetricLight_FragmentShader compiled!
-
-[INFO]: Shader SpotVolumetricLight linked!
-
-[INFO]: Shader PointVolumetricLight_VertexShader compiled!
-
-[INFO]: Shader PointVolumetricLight_FragmentShader compiled!
-
-[INFO]: Shader PointVolumetricLight linked!
-
-[INFO]: Shader FlatShader_VertexShader compiled!
-
-[INFO]: Shader FlatShader_FragmentShader compiled!
-
-[INFO]: Shader FlatShader linked!
-
-[INFO]: Shader FlatShader_VertexShader compiled!
-
-[INFO]: Shader FlatShader_FragmentShader compiled!
-
-[INFO]: Shader FlatShader linked!
-
-[INFO]: Shader SpriteShader_VertexShader compiled!
-
-[INFO]: Shader SpriteShader_FragmentShader compiled!
-
-[INFO]: Shader SpriteShader linked!
-
-[INFO]: Shader UIShader_VertexShader compiled!
-
-[INFO]: Shader UIShader_FragmentShader compiled!
-
-[INFO]: Shader UIShader linked!
-
-[INFO]: Shader ParticleSystemShader_VertexShader compiled!
-
-[INFO]: Shader ParticleSystemShader_FragmentShader compiled!
-
-[INFO]: Shader ParticleSystemShader linked!
-
-[INFO]: Shader DebugShader_VertexShader compiled!
-
-[INFO]: Shader DebugShader_FragmentShader compiled!
-
-[INFO]: Shader DebugShader linked!
-
-[INFO]: Shader FXAAShader_VertexShader compiled!
-
-[INFO]: Shader FXAAShader_FragmentShader compiled!
-
-[INFO]: Shader FXAAShader linked!
-
-[INFO]: Shader SpriteShader2D_VertexShader compiled!
-
-[INFO]: Shader SpriteShader2D_FragmentShader compiled!
-
-[INFO]: Shader SpriteShader2D linked!
-
+[INFO]: Shader BlurShader_VertexShader compiled successfully!
+[INFO]: Shader BlurShader_FragmentShader compiled successfully!
+[INFO]: Shader BlurShader linked successfully!
+[INFO]: Shader SsaoShader_VertexShader compiled successfully!
+[INFO]: Shader SsaoShader_FragmentShader compiled successfully!
+[INFO]: Shader SsaoShader linked successfully!
+[INFO]: Shader SpotLightShader_VertexShader compiled successfully!
+[INFO]: Shader SpotLightShader_FragmentShader compiled successfully!
+[INFO]: Shader SpotLightShader linked successfully!
+[INFO]: Shader PointLightShader_VertexShader compiled successfully!
+[INFO]: Shader PointLightShader_FragmentShader compiled successfully!
+[INFO]: Shader PointLightShader linked successfully!
+[INFO]: Shader DirectionalLightShader_VertexShader compiled successfully!
+[INFO]: Shader DirectionalLightShader_FragmentShader compiled successfully!
+[INFO]: Shader DirectionalLightShader linked successfully!
+[INFO]: Shader AmbientLightShader_VertexShader compiled successfully!
+[INFO]: Shader AmbientLightShader_FragmentShader compiled successfully!
+[INFO]: Shader AmbientLightShader linked successfully!
+[INFO]: Shader FlatShader_VertexShader compiled successfully!
+[INFO]: Shader FlatShader_FragmentShader compiled successfully!
+[INFO]: Shader FlatShader linked successfully!
+[INFO]: Shader SkyboxShader_VertexShader compiled successfully!
+[INFO]: Shader SkyboxShader_FragmentShader compiled successfully!
+[INFO]: Shader SkyboxShader linked successfully!
+[INFO]: Shader SpotVolumetricLight_VertexShader compiled successfully!
+[INFO]: Shader SpotVolumetricLight_FragmentShader compiled successfully!
+[INFO]: Shader SpotVolumetricLight linked successfully!
+[INFO]: Shader PointVolumetricLight_VertexShader compiled successfully!
+[INFO]: Shader PointVolumetricLight_FragmentShader compiled successfully!
+[INFO]: Shader PointVolumetricLight linked successfully!
+[INFO]: Shader FlatShader_VertexShader compiled successfully!
+[INFO]: Shader FlatShader_FragmentShader compiled successfully!
+[INFO]: Shader FlatShader linked successfully!
+[INFO]: Shader FlatShader_VertexShader compiled successfully!
+[INFO]: Shader FlatShader_FragmentShader compiled successfully!
+[INFO]: Shader FlatShader linked successfully!
+[INFO]: Shader SpriteShader_VertexShader compiled successfully!
+[INFO]: Shader SpriteShader_FragmentShader compiled successfully!
+[INFO]: Shader SpriteShader linked successfully!
+[INFO]: Shader UIShader_VertexShader compiled successfully!
+[INFO]: Shader UIShader_FragmentShader compiled successfully!
+[INFO]: Shader UIShader linked successfully!
+[INFO]: Shader ParticleSystemShader_VertexShader compiled successfully!
+[INFO]: Shader ParticleSystemShader_FragmentShader compiled successfully!
+[INFO]: Shader ParticleSystemShader linked successfully!
+[INFO]: Shader DebugShader_VertexShader compiled successfully!
+[INFO]: Shader DebugShader_FragmentShader compiled successfully!
+[INFO]: Shader DebugShader linked successfully!
+[INFO]: Shader FXAAShader_VertexShader compiled successfully!
+[INFO]: Shader FXAAShader_FragmentShader compiled successfully!
+[INFO]: Shader FXAAShader linked successfully!
+[INFO]: Shader RectangleShader_VertexShader compiled successfully!
+[INFO]: Shader RectangleShader_FragmentShader compiled successfully!
+[INFO]: Shader RectangleShader linked successfully!
+[WARNING]: Unable to load options file data/models/scene.rgs.options for data/models/scene.rgs resource, fallback to defaults! Reason: Io(Os { code: 2, kind: NotFound, message: "Не удается найти указанный файл." })
+[WARNING]: Unable to load options file data/models/barrel.FBX.options for data/models/barrel.FBX resource, fallback to defaults! Reason: Io(Os { code: 2, kind: NotFound, message: "Не удается найти указанный файл." })
 [INFO]: Trying to load "data/models/barrel.FBX"
 [INFO]: FBX "data/models/barrel.FBX" loaded in 0 ms
 	- Parsing - 0 ms
 	- DOM Prepare - 0 ms
 	- Conversion - 0 ms
 [INFO]: Model "data/models/barrel.FBX" is loaded!
+[WARNING]: Unable to load options file data/models\barrel.jpg.options for data/models\barrel.jpg resource, fallback to defaults! Reason: Io(Os { code: 2, kind: NotFound, message: "Не удается найти указанный файл." })
+[WARNING]: Unable to load options file data/models\barrel_normal.jpg.options for data/models\barrel_normal.jpg resource, fallback to defaults! Reason: Io(Os { code: 2, kind: NotFound, message: "Не удается найти указанный файл." })
 [INFO]: Starting resolve...
 [INFO]: Resolving graph...
 [INFO]: Original handles resolved!
@@ -120,121 +70,127 @@
 [INFO]: Graph resolved successfully!
 [INFO]: Resolving animations...
 [INFO]: Animations resolved successfully!
-[INFO]: Geometry for trimesh RigidBodyHandle(b774ac19-6c62-4244-94b4-39ea7899db03) was restored from node at handle [Idx: 1; Gen: 1]!
+[WARNING]: Unable to load options file data/textures/floor.jpg.options for data/textures/floor.jpg resource, fallback to defaults! Reason: Io(Os { code: 2, kind: NotFound, message: "Не удается найти указанный файл." })
 [INFO]: Resolve succeeded!
 [INFO]: Model "data/models/scene.rgs" is loaded!
-[INFO]: Geometry for trimesh RigidBodyHandle(b774ac19-6c62-4244-94b4-39ea7899db03) was restored from node at handle [Idx: 2; Gen: 1]!
-[INFO]: Resource data/models/scene.rgs was successfully embedded into physics world!
-[INFO]: Texture "data/models\\barrel_normal.jpg" is loaded in 19.1548ms!
-[INFO]: Texture "data/models\\barrel.jpg" is loaded in 20.6952ms!
-[INFO]: Texture "data/textures/skybox/down.jpg" is loaded in 46.9472ms!
-[INFO]: Texture "data/textures/skybox/left.jpg" is loaded in 50.4641ms!
-[INFO]: Texture "data/textures/skybox/right.jpg" is loaded in 53.4912ms!
-[INFO]: Texture "data/textures/skybox/up.jpg" is loaded in 60.3991ms!
-[INFO]: Texture "data/textures/floor.jpg" is loaded in 65.4409ms!
-[INFO]: Texture "data/textures/skybox/front.jpg" is loaded in 66.5595ms!
-[INFO]: Texture "data/textures/skybox/back.jpg" is loaded in 68.2523ms!
+[WARNING]: Unable to load options file data/textures/skybox/front.jpg.options for data/textures/skybox/front.jpg resource, fallback to defaults! Reason: Io(Os { code: 2, kind: NotFound, message: "Не удается найти указанный файл." })
+[WARNING]: Unable to load options file data/textures/skybox/back.jpg.options for data/textures/skybox/back.jpg resource, fallback to defaults! Reason: Io(Os { code: 2, kind: NotFound, message: "Не удается найти указанный файл." })
+[WARNING]: Unable to load options file data/textures/skybox/right.jpg.options for data/textures/skybox/right.jpg resource, fallback to defaults! Reason: Io(Os { code: 2, kind: NotFound, message: "Не удается найти указанный файл." })
+[WARNING]: Unable to load options file data/textures/skybox/left.jpg.options for data/textures/skybox/left.jpg resource, fallback to defaults! Reason: Io(Os { code: 2, kind: NotFound, message: "Не удается найти указанный файл." })
+[WARNING]: Unable to load options file data/textures/skybox/down.jpg.options for data/textures/skybox/down.jpg resource, fallback to defaults! Reason: Io(Os { code: 2, kind: NotFound, message: "Не удается найти указанный файл." })
+[WARNING]: Unable to load options file data/textures/skybox/up.jpg.options for data/textures/skybox/up.jpg resource, fallback to defaults! Reason: Io(Os { code: 2, kind: NotFound, message: "Не удается найти указанный файл." })
+[INFO]: Texture "data/models\\barrel.jpg" is loaded in 82.0416ms!
+[INFO]: Texture "data/models\\barrel_normal.jpg" is loaded in 87.1124ms!
+[INFO]: Texture "data/textures/skybox/up.jpg" is loaded in 207.3779ms!
+[INFO]: Texture "data/textures/floor.jpg" is loaded in 220.9285ms!
+[INFO]: Texture "data/textures/skybox/down.jpg" is loaded in 219.8154ms!
+[INFO]: Texture "data/textures/skybox/right.jpg" is loaded in 240.938ms!
+[INFO]: Texture "data/textures/skybox/front.jpg" is loaded in 260.4928ms!
+[INFO]: Texture "data/textures/skybox/back.jpg" is loaded in 271.6325ms!
+[INFO]: Texture "data/textures/skybox/left.jpg" is loaded in 278.5044ms!
+[WARNING]: Unable to load options file data/models/m4.FBX.options for data/models/m4.FBX resource, fallback to defaults! Reason: Io(Os { code: 2, kind: NotFound, message: "Не удается найти указанный файл." })
 [INFO]: Trying to load "data/models/m4.FBX"
-[INFO]: FBX "data/models/m4.FBX" loaded in 27 ms
-	- Parsing - 18 ms
+[WARNING]: Unable to load options file data/models\M4_Magazine.png.options for data/models\M4_Magazine.png resource, fallback to defaults! Reason: Io(Os { code: 2, kind: NotFound, message: "Не удается найти указанный файл." })
+[WARNING]: Unable to load options file data/models\M4_Magazine_normal.png.options for data/models\M4_Magazine_normal.png resource, fallback to defaults! Reason: Io(Os { code: 2, kind: NotFound, message: "Не удается найти указанный файл." })
+[WARNING]: Unable to load options file data/models\M4_Sight.png.options for data/models\M4_Sight.png resource, fallback to defaults! Reason: Io(Os { code: 2, kind: NotFound, message: "Не удается найти указанный файл." })
+[WARNING]: Unable to load options file data/models\M4_Sight_normal.png.options for data/models\M4_Sight_normal.png resource, fallback to defaults! Reason: Io(Os { code: 2, kind: NotFound, message: "Не удается найти указанный файл." })
+[WARNING]: Unable to load options file data/models\M4_Body.png.options for data/models\M4_Body.png resource, fallback to defaults! Reason: Io(Os { code: 2, kind: NotFound, message: "Не удается найти указанный файл." })
+[WARNING]: Unable to load options file data/models\M4_Body_normal.png.options for data/models\M4_Body_normal.png resource, fallback to defaults! Reason: Io(Os { code: 2, kind: NotFound, message: "Не удается найти указанный файл." })
+[INFO]: FBX "data/models/m4.FBX" loaded in 23 ms
+	- Parsing - 15 ms
 	- DOM Prepare - 1 ms
-	- Conversion - 7 ms
+	- Conversion - 6 ms
 [INFO]: Model "data/models/m4.FBX" is loaded!
-[INFO]: Resource data/models/m4.FBX was successfully embedded into physics world!
-[INFO]: Shader DecalShader_VertexShader compiled!
-
-[INFO]: Shader DecalShader_FragmentShader compiled!
-
-[INFO]: Shader DecalShader linked!
-
-[INFO]: Shader AdaptationShader_VertexShader compiled!
-
-[INFO]: Shader AdaptationShader_FragmentShader compiled!
-
-[INFO]: Shader AdaptationShader linked!
-
-[INFO]: Shader LuminanceShader_VertexShader compiled!
-
-[INFO]: Shader LuminanceShader_FragmentShader compiled!
-
-[INFO]: Shader LuminanceShader linked!
-
-[INFO]: Shader DownscaleShader_VertexShader compiled!
-
-[INFO]: Shader DownscaleShader_FragmentShader compiled!
-
-[INFO]: Shader DownscaleShader linked!
-
-[INFO]: Shader HdrToLdrShader_VertexShader compiled!
-
-[INFO]: Shader HdrToLdrShader_FragmentShader compiled!
-
-[INFO]: Shader HdrToLdrShader linked!
-
-[INFO]: Shader BloomShader_VertexShader compiled!
-
-[INFO]: Shader BloomShader_FragmentShader compiled!
-
-[INFO]: Shader BloomShader linked!
-
-[INFO]: Shader GaussianBlurShader_VertexShader compiled!
-
-[INFO]: Shader GaussianBlurShader_FragmentShader compiled!
-
-[INFO]: Shader GaussianBlurShader linked!
-
-[INFO]: Shader StandardShader_GBuffer_VertexShader compiled!
-
-[INFO]: Shader StandardShader_GBuffer_FragmentShader compiled!
-
-[INFO]: Shader StandardShader_GBuffer linked!
-
-[INFO]: Shader StandardShader_Forward_VertexShader compiled!
-
-[INFO]: Shader StandardShader_Forward_FragmentShader compiled!
-
-[INFO]: Shader StandardShader_Forward linked!
-
-[INFO]: Shader StandardShader_SpotShadow_VertexShader compiled!
-
-[INFO]: Shader StandardShader_SpotShadow_FragmentShader compiled!
-
-[INFO]: Shader StandardShader_SpotShadow linked!
-
-[INFO]: Shader StandardShader_PointShadow_VertexShader compiled!
-
-[INFO]: Shader StandardShader_PointShadow_FragmentShader compiled!
-
-[INFO]: Shader StandardShader_PointShadow linked!
-
-[INFO]: Shader StandardShader_GBuffer_VertexShader compiled!
-
-[INFO]: Shader StandardShader_GBuffer_FragmentShader compiled!
-
-[INFO]: Shader StandardShader_GBuffer linked!
-
-[INFO]: Shader StandardShader_Forward_VertexShader compiled!
-
-[INFO]: Shader StandardShader_Forward_FragmentShader compiled!
-
-[INFO]: Shader StandardShader_Forward linked!
-
-[INFO]: Shader StandardShader_SpotShadow_VertexShader compiled!
-
-[INFO]: Shader StandardShader_SpotShadow_FragmentShader compiled!
-
-[INFO]: Shader StandardShader_SpotShadow linked!
-
-[INFO]: Shader StandardShader_PointShadow_VertexShader compiled!
-
-[INFO]: Shader StandardShader_PointShadow_FragmentShader compiled!
-
-[INFO]: Shader StandardShader_PointShadow linked!
-
-[INFO]: Texture "data/models\\M4_Sight_normal.png" is loaded in 41.8832ms!
-[INFO]: Texture "data/models\\M4_Sight.png" is loaded in 46.8736ms!
-[INFO]: Texture "data/models\\M4_Magazine.png" is loaded in 48.4185ms!
-[INFO]: Texture "data/models\\M4_Magazine_normal.png" is loaded in 48.9531ms!
-[INFO]: Texture "data/models\\M4_Body.png" is loaded in 47.615ms!
-[INFO]: Texture "data/models\\M4_Body_normal.png" is loaded in 56.2171ms!
-[INFO]: Texture "data/textures/spark.png" is loaded in 10.6693ms!
+[INFO]: Shader BlurShader_VertexShader compiled successfully!
+[INFO]: Shader BlurShader_FragmentShader compiled successfully!
+[INFO]: Shader BlurShader linked successfully!
+[INFO]: Shader SsaoShader_VertexShader compiled successfully!
+[INFO]: Shader SsaoShader_FragmentShader compiled successfully!
+[INFO]: Shader SsaoShader linked successfully!
+[INFO]: Shader BlurShader_VertexShader compiled successfully!
+[INFO]: Shader BlurShader_FragmentShader compiled successfully!
+[INFO]: Shader BlurShader linked successfully!
+[INFO]: Shader SsaoShader_VertexShader compiled successfully!
+[INFO]: Shader SsaoShader_FragmentShader compiled successfully!
+[INFO]: Shader SsaoShader linked successfully!
+[INFO]: Shader BlurShader_VertexShader compiled successfully!
+[INFO]: Shader BlurShader_FragmentShader compiled successfully!
+[INFO]: Shader BlurShader linked successfully!
+[INFO]: Shader SsaoShader_VertexShader compiled successfully!
+[INFO]: Shader SsaoShader_FragmentShader compiled successfully!
+[INFO]: Shader SsaoShader linked successfully!
+[INFO]: Shader BlurShader_VertexShader compiled successfully!
+[INFO]: Shader BlurShader_FragmentShader compiled successfully!
+[INFO]: Shader BlurShader linked successfully!
+[INFO]: Shader SsaoShader_VertexShader compiled successfully!
+[INFO]: Shader SsaoShader_FragmentShader compiled successfully!
+[INFO]: Shader SsaoShader linked successfully!
+[INFO]: Native rigid body was created for node Rigid Body
+[INFO]: Native collider was created for node Collider
+[INFO]: Native rigid body was created for node Rigid Body
+[INFO]: Native collider was created for node Collider
+[INFO]: Native rigid body was created for node Rigid Body
+[INFO]: Native collider was created for node Collider
+[INFO]: Native rigid body was created for node Rigid Body
+[INFO]: Native collider was created for node Collider
+[INFO]: Native rigid body was created for node 
+[INFO]: Shader DecalShader_VertexShader compiled successfully!
+[INFO]: Shader DecalShader_FragmentShader compiled successfully!
+[INFO]: Shader DecalShader linked successfully!
+[INFO]: Shader AdaptationShader_VertexShader compiled successfully!
+[INFO]: Shader AdaptationShader_FragmentShader compiled successfully!
+[INFO]: Shader AdaptationShader linked successfully!
+[INFO]: Shader LuminanceShader_VertexShader compiled successfully!
+[INFO]: Shader LuminanceShader_FragmentShader compiled successfully!
+[INFO]: Shader LuminanceShader linked successfully!
+[INFO]: Shader DownscaleShader_VertexShader compiled successfully!
+[INFO]: Shader DownscaleShader_FragmentShader compiled successfully!
+[INFO]: Shader DownscaleShader linked successfully!
+[INFO]: Shader HdrToLdrShader_VertexShader compiled successfully!
+[INFO]: Shader HdrToLdrShader_FragmentShader compiled successfully!
+[INFO]: Shader HdrToLdrShader linked successfully!
+[INFO]: Shader BloomShader_VertexShader compiled successfully!
+[INFO]: Shader BloomShader_FragmentShader compiled successfully!
+[INFO]: Shader BloomShader linked successfully!
+[INFO]: Shader GaussianBlurShader_VertexShader compiled successfully!
+[INFO]: Shader GaussianBlurShader_FragmentShader compiled successfully!
+[INFO]: Shader GaussianBlurShader linked successfully!
+[INFO]: Shader StandardShader_GBuffer_VertexShader compiled successfully!
+[INFO]: Shader StandardShader_GBuffer_FragmentShader compiled successfully!
+[INFO]: Shader StandardShader_GBuffer linked successfully!
+[INFO]: Shader StandardShader_Forward_VertexShader compiled successfully!
+[INFO]: Shader StandardShader_Forward_FragmentShader compiled successfully!
+[INFO]: Shader StandardShader_Forward linked successfully!
+[INFO]: Shader StandardShader_DirectionalShadow_VertexShader compiled successfully!
+[INFO]: Shader StandardShader_DirectionalShadow_FragmentShader compiled successfully!
+[INFO]: Shader StandardShader_DirectionalShadow linked successfully!
+[INFO]: Shader StandardShader_SpotShadow_VertexShader compiled successfully!
+[INFO]: Shader StandardShader_SpotShadow_FragmentShader compiled successfully!
+[INFO]: Shader StandardShader_SpotShadow linked successfully!
+[INFO]: Shader StandardShader_PointShadow_VertexShader compiled successfully!
+[INFO]: Shader StandardShader_PointShadow_FragmentShader compiled successfully!
+[INFO]: Shader StandardShader_PointShadow linked successfully!
+[INFO]: Shader StandardShader_GBuffer_VertexShader compiled successfully!
+[INFO]: Shader StandardShader_GBuffer_FragmentShader compiled successfully!
+[INFO]: Shader StandardShader_GBuffer linked successfully!
+[INFO]: Shader StandardShader_Forward_VertexShader compiled successfully!
+[INFO]: Shader StandardShader_Forward_FragmentShader compiled successfully!
+[INFO]: Shader StandardShader_Forward linked successfully!
+[INFO]: Shader StandardShader_DirectionalShadow_VertexShader compiled successfully!
+[INFO]: Shader StandardShader_DirectionalShadow_FragmentShader compiled successfully!
+[INFO]: Shader StandardShader_DirectionalShadow linked successfully!
+[INFO]: Shader StandardShader_SpotShadow_VertexShader compiled successfully!
+[INFO]: Shader StandardShader_SpotShadow_FragmentShader compiled successfully!
+[INFO]: Shader StandardShader_SpotShadow linked successfully!
+[INFO]: Shader StandardShader_PointShadow_VertexShader compiled successfully!
+[INFO]: Shader StandardShader_PointShadow_FragmentShader compiled successfully!
+[INFO]: Shader StandardShader_PointShadow linked successfully!
+[INFO]: Texture "data/models\\M4_Magazine_normal.png" is loaded in 284.3637ms!
+[INFO]: Texture "data/models\\M4_Sight.png" is loaded in 285.6951ms!
+[INFO]: Texture "data/models\\M4_Magazine.png" is loaded in 288.4077ms!
+[INFO]: Texture "data/models\\M4_Sight_normal.png" is loaded in 290.4226ms!
+[INFO]: Texture "data/models\\M4_Body.png" is loaded in 298.4835ms!
+[INFO]: Texture "data/models\\M4_Body_normal.png" is loaded in 302.71ms!
+[INFO]: Native collider was created for node 
+[WARNING]: Unable to load options file data/textures/spark.png.options for data/textures/spark.png resource, fallback to defaults! Reason: Io(Os { code: 2, kind: NotFound, message: "Не удается найти указанный файл." })
+[INFO]: Texture "data/textures/spark.png" is loaded in 35.9675ms!
