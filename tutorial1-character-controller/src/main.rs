@@ -3,21 +3,16 @@ use rg3d::{
         algebra::{UnitQuaternion, Vector3},
         pool::Handle,
     },
-    engine::{
-        resource_manager::{MaterialSearchOptions, ResourceManager},
-        Engine,
-    },
+    engine::{resource_manager::ResourceManager, Engine},
     event::{DeviceEvent, ElementState, Event, VirtualKeyCode, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
-    physics3d::{
-        rapier::{dynamics::RigidBodyBuilder, geometry::ColliderBuilder},
-        RigidBodyHandle,
-    },
     resource::texture::TextureWrapMode,
     scene::{
         base::BaseBuilder,
         camera::{CameraBuilder, SkyBox, SkyBoxBuilder},
+        collider::{ColliderBuilder, ColliderShape},
         node::Node,
+        rigidbody::RigidBodyBuilder,
         transform::TransformBuilder,
         Scene,
     },
@@ -39,21 +34,20 @@ struct InputController {
 }
 
 struct Player {
-    pivot: Handle<Node>,
     camera: Handle<Node>,
-    rigid_body: RigidBodyHandle,
+    rigid_body: Handle<Node>,
     controller: InputController,
 }
 
 async fn create_skybox(resource_manager: ResourceManager) -> SkyBox {
     // Load skybox textures in parallel.
     let (front, back, left, right, top, bottom) = rg3d::core::futures::join!(
-        resource_manager.request_texture("data/textures/skybox/front.jpg", None),
-        resource_manager.request_texture("data/textures/skybox/back.jpg", None),
-        resource_manager.request_texture("data/textures/skybox/left.jpg", None),
-        resource_manager.request_texture("data/textures/skybox/right.jpg", None),
-        resource_manager.request_texture("data/textures/skybox/up.jpg", None),
-        resource_manager.request_texture("data/textures/skybox/down.jpg", None)
+        resource_manager.request_texture("data/textures/skybox/front.jpg"),
+        resource_manager.request_texture("data/textures/skybox/back.jpg"),
+        resource_manager.request_texture("data/textures/skybox/left.jpg"),
+        resource_manager.request_texture("data/textures/skybox/right.jpg"),
+        resource_manager.request_texture("data/textures/skybox/up.jpg"),
+        resource_manager.request_texture("data/textures/skybox/down.jpg")
     );
 
     // Unwrap everything.
@@ -80,45 +74,44 @@ async fn create_skybox(resource_manager: ResourceManager) -> SkyBox {
 
 impl Player {
     async fn new(scene: &mut Scene, resource_manager: ResourceManager) -> Self {
-        // Create a pivot and attach a camera to it, move it a bit up to "emulate" head.
+        // Create rigid body with a camera, move it a bit up to "emulate" head.
         let camera;
-        let pivot = BaseBuilder::new()
-            .with_children(&[{
-                camera = CameraBuilder::new(
-                    BaseBuilder::new().with_local_transform(
-                        TransformBuilder::new()
-                            .with_local_position(Vector3::new(0.0, 0.25, 0.0))
-                            .build(),
-                    ),
+        let rigid_body_handle = RigidBodyBuilder::new(
+            BaseBuilder::new()
+                .with_local_transform(
+                    TransformBuilder::new()
+                        // Offset player a bit.
+                        .with_local_position(Vector3::new(0.0, 1.0, -1.0))
+                        .build(),
                 )
-                .with_skybox(create_skybox(resource_manager).await)
-                .build(&mut scene.graph);
-                camera
-            }])
-            .build(&mut scene.graph);
-
-        // Create rigid body, it will be used for interaction with the world.
-        let rigid_body_handle = scene.physics.add_body(
-            RigidBodyBuilder::new_dynamic()
-                .lock_rotations() // We don't want the player to tilt.
-                .translation(Vector3::new(0.0, 1.0, -1.0)) // Offset player a bit.
-                .build(),
-        );
-
-        // Add capsule collider for the rigid body.
-        scene.physics.add_collider(
-            ColliderBuilder::capsule_y(0.25, 0.2).build(),
-            &rigid_body_handle,
-        );
-
-        // Bind pivot with rigid body. Scene will automatically sync transform of the pivot
-        // with the transform of the rigid body.
-        scene.physics_binder.bind(pivot, rigid_body_handle);
+                .with_children(&[
+                    {
+                        camera = CameraBuilder::new(
+                            BaseBuilder::new().with_local_transform(
+                                TransformBuilder::new()
+                                    .with_local_position(Vector3::new(0.0, 0.25, 0.0))
+                                    .build(),
+                            ),
+                        )
+                        .with_skybox(create_skybox(resource_manager).await)
+                        .build(&mut scene.graph);
+                        camera
+                    },
+                    // Add capsule collider for the rigid body.
+                    ColliderBuilder::new(BaseBuilder::new())
+                        .with_shape(ColliderShape::capsule_y(0.25, 0.2))
+                        .build(&mut scene.graph),
+                ]),
+        )
+        // We don't want the player to tilt.
+        .with_locked_rotations(true)
+        // We don't want the rigid body to sleep (be excluded from simulation)
+        .with_can_sleep(false)
+        .build(&mut scene.graph);
 
         Self {
-            pivot,
             camera,
-            rigid_body: rigid_body_handle.into(),
+            rigid_body: rigid_body_handle,
             controller: Default::default(),
         }
     }
@@ -129,42 +122,40 @@ impl Player {
             UnitQuaternion::from_axis_angle(&Vector3::x_axis(), self.controller.pitch.to_radians()),
         );
 
-        // Borrow the pivot in the graph.
-        let pivot = &mut scene.graph[self.pivot];
-
-        // Borrow rigid body in the physics.
-        let body = scene.physics.bodies.get_mut(&self.rigid_body).unwrap();
+        // Borrow rigid body node.
+        let body = scene.graph[self.rigid_body].as_rigid_body_mut();
 
         // Keep only vertical velocity, and drop horizontal.
-        let mut velocity = Vector3::new(0.0, body.linvel().y, 0.0);
+        let mut velocity = Vector3::new(0.0, body.lin_vel().y, 0.0);
 
         // Change the velocity depending on the keys pressed.
         if self.controller.move_forward {
-            // If we moving forward then add "look" vector of the pivot.
-            velocity += pivot.look_vector();
+            // If we moving forward then add "look" vector of the body.
+            velocity += body.look_vector();
         }
         if self.controller.move_backward {
-            // If we moving backward then subtract "look" vector of the pivot.
-            velocity -= pivot.look_vector();
+            // If we moving backward then subtract "look" vector of the body.
+            velocity -= body.look_vector();
         }
         if self.controller.move_left {
-            // If we moving left then add "side" vector of the pivot.
-            velocity += pivot.side_vector();
+            // If we moving left then add "side" vector of the body.
+            velocity += body.side_vector();
         }
         if self.controller.move_right {
-            // If we moving right then subtract "side" vector of the pivot.
-            velocity -= pivot.side_vector();
+            // If we moving right then subtract "side" vector of the body.
+            velocity -= body.side_vector();
         }
 
         // Finally new linear velocity.
-        body.set_linvel(velocity, true);
+        body.set_lin_vel(velocity);
 
         // Change the rotation of the rigid body according to current yaw. These lines responsible for
         // left-right rotation.
-        let mut position = *body.position();
-        position.rotation =
-            UnitQuaternion::from_axis_angle(&Vector3::y_axis(), self.controller.yaw.to_radians());
-        body.set_position(position, true);
+        body.local_transform_mut()
+            .set_rotation(UnitQuaternion::from_axis_angle(
+                &Vector3::y_axis(),
+                self.controller.yaw.to_radians(),
+            ));
     }
 
     fn process_input_event(&mut self, event: &Event<()>) {
@@ -216,10 +207,7 @@ impl Game {
         // Load a scene resource and create its instance.
         engine
             .resource_manager
-            .request_model(
-                "data/models/scene.rgs",
-                MaterialSearchOptions::UsePathDirectly,
-            )
+            .request_model("data/models/scene.rgs")
             .await
             .unwrap()
             .instantiate_geometry(&mut scene);
