@@ -1,2 +1,2 @@
-# rg3d-tutorials
-Source code of tutorials for rg3d game engine
+# Fyrox-tutorials
+Source code of tutorials for Fyrox game engine
