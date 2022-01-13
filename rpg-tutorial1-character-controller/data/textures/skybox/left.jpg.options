@@ -1,0 +1,8 @@
+(
+    minification_filter: LinearMipMapLinear,
+    magnification_filter: Linear,
+    s_wrap_mode: Repeat,
+    t_wrap_mode: Repeat,
+    anisotropy: 16,
+    compression: NoCompression,
+)
