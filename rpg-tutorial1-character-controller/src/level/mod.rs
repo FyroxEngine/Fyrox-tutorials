@@ -1,6 +1,6 @@
-use rg3d::{
+use fyrox::{
     core::pool::Handle,
-    engine::resource_manager::{MaterialSearchOptions, ResourceManager},
+    engine::resource_manager::{ ResourceManager},
     scene::{node::Node, Scene},
 };
 
@@ -12,8 +12,7 @@ impl Level {
     pub async fn new(resource_manager: ResourceManager, scene: &mut Scene) -> Self {
         let root = resource_manager
             .request_model(
-                "data/levels/level.rgs",
-                MaterialSearchOptions::UsePathDirectly,
+                "data/levels/level.rgs"
             )
             .await
             .unwrap()

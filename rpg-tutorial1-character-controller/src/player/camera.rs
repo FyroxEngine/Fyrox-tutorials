@@ -1,4 +1,4 @@
-use rg3d::{
+use fyrox::{
     core::{
         algebra::{UnitQuaternion, Vector3},
         pool::Handle,
@@ -98,11 +98,11 @@ impl CameraController {
     }
 }
 
-// Creates a new sky box, this code was taken from "Writing a 3D shooter using rg3d" tutorial
+// Creates a new sky box, this code was taken from "Writing a 3D shooter using fyrox" tutorial
 // series.
 async fn create_skybox(resource_manager: ResourceManager) -> SkyBox {
     // Load skybox textures in parallel.
-    let (front, back, left, right, top, bottom) = rg3d::core::futures::join!(
+    let (front, back, left, right, top, bottom) = fyrox::core::futures::join!(
         resource_manager.request_texture("data/textures/skybox/front.jpg"),
         resource_manager.request_texture("data/textures/skybox/back.jpg"),
         resource_manager.request_texture("data/textures/skybox/left.jpg"),

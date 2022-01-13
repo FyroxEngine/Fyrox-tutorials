@@ -1,7 +1,10 @@
 use crate::{level::Level, player::Player};
-use rg3d::{
+use fyrox::{
     core::{color::Color, futures::executor::block_on, pool::Handle},
-    engine::framework::{Framework, GameEngine, GameState},
+    engine::{
+        framework::{Framework, GameState},
+        Engine,
+    },
     event::{DeviceEvent, DeviceId, WindowEvent},
     event_loop::ControlFlow,
     scene::Scene,
@@ -17,7 +20,7 @@ struct Game {
 }
 
 impl GameState for Game {
-    fn init(engine: &mut GameEngine) -> Self
+    fn init(engine: &mut Engine) -> Self
     where
         Self: Sized,
     {
@@ -34,22 +37,17 @@ impl GameState for Game {
         }
     }
 
-    fn on_tick(&mut self, engine: &mut GameEngine, dt: f32, _: &mut ControlFlow) {
+    fn on_tick(&mut self, engine: &mut Engine, dt: f32, _: &mut ControlFlow) {
         let scene = &mut engine.scenes[self.scene];
 
         self.player.update(scene, dt);
     }
 
-    fn on_device_event(
-        &mut self,
-        _engine: &mut GameEngine,
-        _device_id: DeviceId,
-        event: DeviceEvent,
-    ) {
+    fn on_device_event(&mut self, _engine: &mut Engine, _device_id: DeviceId, event: DeviceEvent) {
         self.player.handle_device_event(&event);
     }
 
-    fn on_window_event(&mut self, _engine: &mut GameEngine, event: WindowEvent) {
+    fn on_window_event(&mut self, _engine: &mut Engine, event: WindowEvent) {
         match event {
             WindowEvent::KeyboardInput { input, .. } => {
                 self.player.handle_key_event(&input);
