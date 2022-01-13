@@ -1,7 +1,4 @@
-use rg3d::scene::collider::{ColliderBuilder, ColliderShape};
-use rg3d::scene::rigidbody::RigidBodyBuilder;
-use rg3d::scene::transform::TransformBuilder;
-use rg3d::{
+use fyrox::{
     animation::{
         machine::{Machine, Parameter, PoseNode, State, Transition},
         Animation,
@@ -12,7 +9,14 @@ use rg3d::{
     },
     engine::resource_manager::ResourceManager,
     resource::model::Model,
-    scene::{base::BaseBuilder, node::Node, Scene},
+    scene::{
+        base::BaseBuilder,
+        collider::{ColliderBuilder, ColliderShape},
+        node::Node,
+        rigidbody::RigidBodyBuilder,
+        transform::TransformBuilder,
+        Scene,
+    },
 };
 
 pub struct Bot {
@@ -171,7 +175,7 @@ impl BotAnimationMachine {
         let mut machine = Machine::new();
 
         // Load animations in parallel.
-        let (walk_animation_resource, idle_animation_resource, attack_animation_resource) = rg3d::core::futures::join!(
+        let (walk_animation_resource, idle_animation_resource, attack_animation_resource) = fyrox::core::futures::join!(
             resource_manager.request_model("data/animations/zombie_walk.fbx"),
             resource_manager.request_model("data/animations/zombie_idle.fbx"),
             resource_manager.request_model("data/animations/zombie_attack.fbx"),
