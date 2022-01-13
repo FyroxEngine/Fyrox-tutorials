@@ -49,6 +49,7 @@ impl CameraController {
                                     .build(),
                             ),
                         )
+                        .with_z_far(48.0)
                         .with_skybox(create_skybox(resource_manager).await)
                         .build(graph);
                         camera
