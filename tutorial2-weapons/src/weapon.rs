@@ -1,5 +1,5 @@
-use rg3d::scene::graph::Graph;
-use rg3d::{
+use fyrox::scene::graph::Graph;
+use fyrox::{
     core::{algebra::Vector3, math::Vector3Ext, pool::Handle},
     engine::resource_manager::ResourceManager,
     scene::{node::Node, Scene},
