@@ -1,4 +1,4 @@
-use rg3d::{
+use fyrox::{
     core::{
         algebra::{UnitQuaternion, Vector3},
         pool::Handle,
@@ -41,7 +41,7 @@ struct Player {
 
 async fn create_skybox(resource_manager: ResourceManager) -> SkyBox {
     // Load skybox textures in parallel.
-    let (front, back, left, right, top, bottom) = rg3d::core::futures::join!(
+    let (front, back, left, right, top, bottom) = fyrox::core::futures::join!(
         resource_manager.request_texture("data/textures/skybox/front.jpg"),
         resource_manager.request_texture("data/textures/skybox/back.jpg"),
         resource_manager.request_texture("data/textures/skybox/left.jpg"),
@@ -233,7 +233,7 @@ fn main() {
     let mut engine = Engine::new(window_builder, &event_loop, false).unwrap();
 
     // Initialize game instance.
-    let mut game = rg3d::core::futures::executor::block_on(Game::new(&mut engine));
+    let mut game = fyrox::core::futures::executor::block_on(Game::new(&mut engine));
 
     // Run the event loop of the main window. which will respond to OS and window events and update
     // engine's state accordingly. Engine lets you to decide which event should be handled,
