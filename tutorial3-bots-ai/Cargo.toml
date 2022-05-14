@@ -1,8 +1,8 @@
 [package]
 name = "tutorial-shooter"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Dmitry Stepanov <d1maxa@yandex.ru>"]
 edition = "2018"
 
 [dependencies]
-fyrox = "0.24.0"
+fyrox = {path = "../../fyrox/", version = "0.25.0"}

@@ -1,4 +1,6 @@
 use crate::{bot::Bot, message::Message, weapon::Weapon};
+use fyrox::engine::{EngineInitParams, SerializationContext};
+use fyrox::scene::pivot::PivotBuilder;
 use fyrox::{
     core::{
         algebra::{Point3, UnitQuaternion, Vector3},
@@ -184,15 +186,16 @@ impl Player {
                                         .build(),
                                 )
                                 .with_children(&[{
-                                    weapon_pivot = BaseBuilder::new()
-                                        .with_local_transform(
+                                    weapon_pivot = PivotBuilder::new(
+                                        BaseBuilder::new().with_local_transform(
                                             TransformBuilder::new()
                                                 .with_local_position(Vector3::new(
                                                     -0.1, -0.05, 0.015,
                                                 ))
                                                 .build(),
-                                        )
-                                        .build(&mut scene.graph);
+                                        ),
+                                    )
+                                    .build(&mut scene.graph);
                                     weapon_pivot
                                 }]),
                         )
@@ -356,6 +359,8 @@ fn create_shot_trail(
 
     MeshBuilder::new(
         BaseBuilder::new()
+            // Do not cast shadows.
+            .with_cast_shadows(false)
             .with_local_transform(transform)
             // Shot trail should live ~0.25 seconds, after that it will be automatically
             // destroyed.
@@ -364,8 +369,6 @@ fn create_shot_trail(
     .with_surfaces(vec![SurfaceBuilder::new(shape)
         .with_material(Arc::new(Mutex::new(material)))
         .build()])
-    // Do not cast shadows.
-    .with_cast_shadows(false)
     // Make sure to set Forward render path, otherwise the object won't be
     // transparent.
     .with_render_path(RenderPath::Forward)
@@ -540,7 +543,15 @@ fn main() {
     let event_loop = EventLoop::new();
 
     // Finally create an instance of the engine.
-    let mut engine = Engine::new(window_builder, &event_loop, true).unwrap();
+    let serialization_context = Arc::new(SerializationContext::new());
+    let mut engine = Engine::new(EngineInitParams {
+        window_builder,
+        resource_manager: ResourceManager::new(serialization_context.clone()),
+        serialization_context,
+        events_loop: &event_loop,
+        vsync: false,
+    })
+    .unwrap();
 
     // Initialize game instance.
     let mut game = fyrox::core::futures::executor::block_on(Game::new(&mut engine));

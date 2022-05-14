@@ -172,7 +172,7 @@ impl BotAnimationMachine {
         model: Handle<Node>,
         resource_manager: ResourceManager,
     ) -> Self {
-        let mut machine = Machine::new();
+        let mut machine = Machine::new(model);
 
         // Load animations in parallel.
         let (walk_animation_resource, idle_animation_resource, attack_animation_resource) = fyrox::core::futures::join!(
