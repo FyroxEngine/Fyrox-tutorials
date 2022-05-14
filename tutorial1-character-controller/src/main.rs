@@ -3,7 +3,7 @@ use fyrox::{
         algebra::{UnitQuaternion, Vector3},
         pool::Handle,
     },
-    engine::{resource_manager::ResourceManager, Engine},
+    engine::{resource_manager::ResourceManager, Engine, EngineInitParams, SerializationContext},
     event::{DeviceEvent, ElementState, Event, VirtualKeyCode, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
     resource::texture::TextureWrapMode,
@@ -18,7 +18,7 @@ use fyrox::{
     },
     window::WindowBuilder,
 };
-use std::time;
+use std::{sync::Arc, time};
 
 // Our game logic will be updated at 60 Hz rate.
 const TIMESTEP: f32 = 1.0 / 60.0;
@@ -230,7 +230,15 @@ fn main() {
     let event_loop = EventLoop::new();
 
     // Finally create an instance of the engine.
-    let mut engine = Engine::new(window_builder, &event_loop, false).unwrap();
+    let serialization_context = Arc::new(SerializationContext::new());
+    let mut engine = Engine::new(EngineInitParams {
+        window_builder,
+        resource_manager: ResourceManager::new(serialization_context.clone()),
+        serialization_context,
+        events_loop: &event_loop,
+        vsync: false,
+    })
+    .unwrap();
 
     // Initialize game instance.
     let mut game = fyrox::core::futures::executor::block_on(Game::new(&mut engine));
