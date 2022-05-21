@@ -1,0 +1,10 @@
+
+[package]
+name = "editor"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+fyrox = "0.25"
+fyroxed_base = "0.12"
+platformer = { path = "../game" }
