@@ -9,8 +9,7 @@ fn main() {
         &event_loop,
         Some(StartupData {
             working_directory: Default::default(),
-            // Set this to `"path/to/your/scene.rgs".into()` to force the editor to load the scene on startup.
-            scene: Default::default(),
+            scene: "data/scene.rgs".into(),
         }),
     );
     editor.add_game_plugin(Game::new());

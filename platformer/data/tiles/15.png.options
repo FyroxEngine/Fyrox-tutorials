@@ -1,4 +1,8 @@
 (
-	t_wrap_mode: ClampToEdge,
-	s_wrap_mode: ClampToEdge,
+    minification_filter: Nearest,
+    magnification_filter: Nearest,
+    s_wrap_mode: ClampToEdge,
+    t_wrap_mode: ClampToEdge,
+    anisotropy: 0,
+    compression: NoCompression,
 )
