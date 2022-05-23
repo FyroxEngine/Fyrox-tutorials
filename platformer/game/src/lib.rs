@@ -1,4 +1,7 @@
 //! Game project.
+use fyrox::core::algebra::{Vector2, Vector3};
+use fyrox::event::{ElementState, VirtualKeyCode, WindowEvent};
+use fyrox::scene::dim2::rigidbody::RigidBody;
 use fyrox::{
     core::{
         inspect::{Inspect, PropertyInfo},
@@ -80,12 +83,20 @@ impl Plugin for Game {
 
 #[derive(Visit, Inspect, Debug, Clone)]
 struct Player {
-    body: Handle<Node>,
+    sprite: Handle<Node>,
+    move_left: bool,
+    move_right: bool,
+    jump: bool,
 }
 
 impl Default for Player {
     fn default() -> Self {
-        Self { body: Handle::NONE }
+        Self {
+            sprite: Handle::NONE,
+            move_left: false,
+            move_right: false,
+            jump: false,
+        }
     }
 }
 
@@ -101,8 +112,8 @@ impl ScriptTrait for Player {
     fn on_property_changed(&mut self, args: &PropertyChanged) -> bool {
         if let FieldKind::Object(ref value) = args.value {
             match args.name.as_ref() {
-                Player::BODY => {
-                    self.body = value.cast_clone().unwrap();
+                Player::SPRITE => {
+                    self.sprite = value.cast_clone().unwrap();
                     true
                 }
                 _ => false,
@@ -116,10 +127,62 @@ impl ScriptTrait for Player {
     fn on_init(&mut self, context: ScriptContext) {}
 
     // Called everytime when there is an event from OS (mouse click, key press, etc.)
-    fn on_os_event(&mut self, event: &Event<()>, context: ScriptContext) {}
+    fn on_os_event(&mut self, event: &Event<()>, context: ScriptContext) {
+        if let Event::WindowEvent { event, .. } = event {
+            if let WindowEvent::KeyboardInput { input, .. } = event {
+                if let Some(keycode) = input.virtual_keycode {
+                    let is_pressed = input.state == ElementState::Pressed;
+
+                    match keycode {
+                        VirtualKeyCode::A => self.move_left = is_pressed,
+                        VirtualKeyCode::D => self.move_right = is_pressed,
+                        VirtualKeyCode::Space => self.jump = is_pressed,
+                        _ => (),
+                    }
+                }
+            }
+        }
+    }
 
     // Called every frame at fixed rate of 60 FPS.
-    fn on_update(&mut self, context: ScriptContext) {}
+    fn on_update(&mut self, context: ScriptContext) {
+        // The script can be assigned to any scene node, but we assert that it will work only with
+        // 2d rigid body nodes.
+        if let Some(rigid_body) = context.node.cast_mut::<RigidBody>() {
+            let x_speed = if self.move_left {
+                3.0
+            } else if self.move_right {
+                -3.0
+            } else {
+                0.0
+            };
+
+            if self.jump {
+                rigid_body.set_lin_vel(Vector2::new(x_speed, 4.0))
+            } else {
+                rigid_body.set_lin_vel(Vector2::new(x_speed, rigid_body.lin_vel().y))
+            };
+
+            // It is always a good practice to check whether the handles are valid, at this point we don't know
+            // for sure what's the value of the `sprite` field. It can be unassigned and the following code won't
+            // execute. A simple `context.scene.graph[self.sprite]` would just panicked in this case.
+            if let Some(sprite) = context.scene.graph.try_get_mut(self.sprite) {
+                // We want to change player orientation only if he's moving.
+                if x_speed != 0.0 {
+                    let local_transform = sprite.local_transform_mut();
+
+                    let current_scale = **local_transform.scale();
+
+                    local_transform.set_scale(Vector3::new(
+                        // Just change X scaling to mirror player's sprite.
+                        current_scale.x.copysign(-x_speed),
+                        current_scale.y,
+                        current_scale.z,
+                    ));
+                }
+            }
+        }
+    }
 
     // Returns unique script id for serialization needs.
     fn id(&self) -> Uuid {
