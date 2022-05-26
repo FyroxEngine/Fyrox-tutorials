@@ -1,21 +1,24 @@
 //! Game project.
-use fyrox::core::algebra::{Vector2, Vector3};
-use fyrox::event::{ElementState, VirtualKeyCode, WindowEvent};
-use fyrox::scene::dim2::rigidbody::RigidBody;
 use fyrox::{
     core::{
+        algebra::{Vector2, Vector3},
+        futures::executor::block_on,
         inspect::{Inspect, PropertyInfo},
         pool::Handle,
         uuid::{uuid, Uuid},
         visitor::prelude::*,
     },
-    event::Event,
-    fxhash::FxHashMap,
-    gui::inspector::{FieldKind, PropertyChanged},
+    engine::resource_manager::ResourceManager,
+    event::{ElementState, Event, VirtualKeyCode, WindowEvent},
+    gui::inspector::{CollectionChanged, FieldKind, PropertyChanged},
+    handle_collection_property_changed, handle_object_property_changed,
     plugin::{Plugin, PluginContext, PluginRegistrationContext},
+    resource::texture::Texture,
     scene::{
+        camera::Camera,
+        dim2::{rectangle::Rectangle, rigidbody::RigidBody},
         node::{Node, TypeUuidProvider},
-        Scene,
+        Scene, SceneLoader,
     },
     script::{ScriptContext, ScriptTrait},
 };
@@ -52,7 +55,16 @@ impl Plugin for Game {
     }
 
     fn on_standalone_init(&mut self, context: PluginContext) {
-        self.set_scene(context.scenes.add(Scene::new()), context);
+        let mut scene = block_on(
+            block_on(SceneLoader::from_file(
+                "data/scene.rgs",
+                context.serialization_context.clone(),
+            ))
+            .unwrap()
+            .finish(context.resource_manager.clone()),
+        );
+
+        self.set_scene(context.scenes.add(scene), context);
     }
 
     fn on_enter_play_mode(&mut self, scene: Handle<Scene>, context: PluginContext) {
@@ -87,6 +99,8 @@ struct Player {
     move_left: bool,
     move_right: bool,
     jump: bool,
+    animations: Vec<Animation>,
+    current_animation: u32,
 }
 
 impl Default for Player {
@@ -96,6 +110,8 @@ impl Default for Player {
             move_left: false,
             move_right: false,
             jump: false,
+            animations: Default::default(),
+            current_animation: 0,
         }
     }
 }
@@ -110,17 +126,8 @@ impl TypeUuidProvider for Player {
 impl ScriptTrait for Player {
     // Accepts events from Inspector in the editor and modifies self state accordingly.
     fn on_property_changed(&mut self, args: &PropertyChanged) -> bool {
-        if let FieldKind::Object(ref value) = args.value {
-            match args.name.as_ref() {
-                Player::SPRITE => {
-                    self.sprite = value.cast_clone().unwrap();
-                    true
-                }
-                _ => false,
-            }
-        } else {
-            false
-        }
+        handle_object_property_changed!(self, args, Self::SPRITE => sprite)
+            || handle_collection_property_changed!(self, args, Self::ANIMATIONS => animations)
     }
 
     // Called once at initialization.
@@ -144,6 +151,12 @@ impl ScriptTrait for Player {
         }
     }
 
+    fn restore_resources(&mut self, resource_manager: ResourceManager) {
+        for animation in self.animations.iter_mut() {
+            animation.restore_resources(resource_manager.clone());
+        }
+    }
+
     // Called every frame at fixed rate of 60 FPS.
     fn on_update(&mut self, context: ScriptContext) {
         // The script can be assigned to any scene node, but we assert that it will work only with
@@ -156,6 +169,12 @@ impl ScriptTrait for Player {
             } else {
                 0.0
             };
+
+            if x_speed != 0.0 {
+                self.current_animation = 0;
+            } else {
+                self.current_animation = 1;
+            }
 
             if self.jump {
                 rigid_body.set_lin_vel(Vector2::new(x_speed, 4.0))
@@ -182,6 +201,24 @@ impl ScriptTrait for Player {
                 }
             }
         }
+
+        if let Some(current_animation) = self.animations.get_mut(self.current_animation as usize) {
+            current_animation.update(context.dt);
+
+            if let Some(sprite) = context
+                .scene
+                .graph
+                .try_get_mut(self.sprite)
+                .and_then(|n| n.cast_mut::<Rectangle>())
+            {
+                // Set new frame to the sprite.
+                sprite.set_texture(
+                    current_animation
+                        .current_frame()
+                        .and_then(|k| k.texture.clone()),
+                )
+            }
+        }
     }
 
     // Returns unique script id for serialization needs.
@@ -192,5 +229,83 @@ impl ScriptTrait for Player {
     // Returns unique id of parent plugin.
     fn plugin_uuid(&self) -> Uuid {
         Game::type_uuid()
+    }
+}
+
+#[derive(Default, Inspect, Visit, Debug, Clone)]
+pub struct KeyFrameTexture {
+    texture: Option<Texture>,
+}
+
+impl KeyFrameTexture {
+    fn on_property_changed(&mut self, args: &PropertyChanged) -> bool {
+        handle_object_property_changed!(self, args, Self::TEXTURE => texture)
+    }
+
+    fn restore_resources(&mut self, resource_manager: ResourceManager) {
+        // It is very important to restore texture handle after loading, otherwise the handle will
+        // remain in "shallow" state when it just has path to data, but not the actual resource handle.
+        resource_manager
+            .state()
+            .containers_mut()
+            .textures
+            .try_restore_optional_resource(&mut self.texture);
+    }
+}
+
+#[derive(Inspect, Visit, Debug, Clone)]
+pub struct Animation {
+    name: String,
+    keyframes: Vec<KeyFrameTexture>,
+    current_frame: u32,
+    speed: f32,
+
+    // We don't want this field to be visible from the editor, because this is internal parameter.
+    #[inspect(skip)]
+    t: f32,
+}
+
+impl Default for Animation {
+    fn default() -> Self {
+        Self {
+            name: "Unnamed".to_string(),
+            keyframes: vec![],
+            current_frame: 0,
+            speed: 10.0,
+            t: 0.0,
+        }
+    }
+}
+
+impl Animation {
+    // Once again, we must implement support for property editing, it is a bit tedious
+    // but must be done once.
+    fn on_property_changed(&mut self, args: &PropertyChanged) -> bool {
+        handle_object_property_changed!(self, args,
+            Self::CURRENT_FRAME => current_frame,
+            Self::NAME => name,
+            Self::SPEED => speed
+        ) || handle_collection_property_changed!(self, args, Self::KEYFRAMES => keyframes)
+    }
+
+    pub fn current_frame(&self) -> Option<&KeyFrameTexture> {
+        self.keyframes.get(self.current_frame as usize)
+    }
+
+    fn restore_resources(&mut self, resource_manager: ResourceManager) {
+        for key_frame in self.keyframes.iter_mut() {
+            key_frame.restore_resources(resource_manager.clone());
+        }
+    }
+
+    pub fn update(&mut self, dt: f32) {
+        self.t += self.speed * dt;
+
+        if self.t >= 1.0 {
+            self.t = 0.0;
+
+            // Increase frame index and make sure it will be clamped in available bounds.
+            self.current_frame = (self.current_frame + 1) % self.keyframes.len() as u32;
+        }
     }
 }

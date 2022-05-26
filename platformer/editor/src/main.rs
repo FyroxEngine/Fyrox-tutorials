@@ -1,7 +1,11 @@
 //! Editor with your game connected to it as a plugin.
-use fyrox::event_loop::EventLoop;
+use fyrox::gui::inspector::editors::collection::VecCollectionPropertyEditorDefinition;
+use fyrox::{
+    event_loop::EventLoop,
+    gui::inspector::editors::inspectable::InspectablePropertyEditorDefinition,
+};
 use fyroxed_base::{Editor, StartupData};
-use platformer::Game;
+use platformer::{Animation, Game, KeyFrameTexture};
 
 fn main() {
     let event_loop = EventLoop::new();
@@ -13,5 +17,13 @@ fn main() {
         }),
     );
     editor.add_game_plugin(Game::new());
+
+    // Register property editors here.
+    let property_editors = &editor.inspector.property_editors;
+    property_editors.insert(InspectablePropertyEditorDefinition::<KeyFrameTexture>::new());
+    property_editors.insert(InspectablePropertyEditorDefinition::<Animation>::new());
+    property_editors.insert(VecCollectionPropertyEditorDefinition::<KeyFrameTexture>::new());
+    property_editors.insert(VecCollectionPropertyEditorDefinition::<Animation>::new());
+
     editor.run(event_loop)
 }
