@@ -5,5 +5,5 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-fyrox = "0.26"
+fyrox = {path = "../../../Fyrox"}
 platformer = { path = "../game" }

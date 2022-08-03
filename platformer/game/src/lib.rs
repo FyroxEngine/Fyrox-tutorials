@@ -1,21 +1,21 @@
 //! Game project.
+use fyrox::plugin::PluginConstructor;
 use fyrox::{
     core::{
         algebra::{Vector2, Vector3},
         futures::executor::block_on,
         inspect::{Inspect, PropertyInfo},
         pool::Handle,
+        reflect::Reflect,
         uuid::{uuid, Uuid},
         visitor::prelude::*,
     },
     engine::resource_manager::ResourceManager,
     event::{ElementState, Event, VirtualKeyCode, WindowEvent},
-    gui::inspector::{CollectionChanged, FieldKind, PropertyChanged},
-    handle_collection_property_changed, handle_object_property_changed,
+    impl_component_provider,
     plugin::{Plugin, PluginContext, PluginRegistrationContext},
     resource::texture::Texture,
     scene::{
-        camera::Camera,
         dim2::{rectangle::Rectangle, rigidbody::RigidBody},
         node::{Node, TypeUuidProvider},
         Scene, SceneLoader,
@@ -23,77 +23,62 @@ use fyrox::{
     script::{ScriptContext, ScriptTrait},
 };
 
-pub struct Game {
-    scene: Handle<Scene>,
-}
+pub struct GameConstructor;
 
-impl TypeUuidProvider for Game {
+impl TypeUuidProvider for GameConstructor {
     fn type_uuid() -> Uuid {
         // Ideally this should be unique per-project.
         uuid!("cb358b1c-fc23-4c44-9e59-0a9671324196")
     }
 }
 
-impl Game {
-    pub fn new() -> Self {
-        Self {
-            scene: Default::default(),
-        }
+impl PluginConstructor for GameConstructor {
+    fn register(&self, context: PluginRegistrationContext) {
+        let script_constructors = &context.serialization_context.script_constructors;
+        script_constructors.add::<Player>("Player");
     }
 
-    fn set_scene(&mut self, scene: Handle<Scene>, _context: PluginContext) {
-        self.scene = scene;
+    fn create_instance(
+        &self,
+        override_scene: Handle<Scene>,
+        context: PluginContext,
+    ) -> Box<dyn Plugin> {
+        Box::new(Game::new(override_scene, context))
+    }
+}
 
-        // Do additional actions with scene here.
+pub struct Game {
+    scene: Handle<Scene>,
+}
+
+impl Game {
+    pub fn new(override_scene: Handle<Scene>, context: PluginContext) -> Self {
+        let scene = if override_scene.is_some() {
+            override_scene
+        } else {
+            let scene = block_on(
+                block_on(SceneLoader::from_file(
+                    "data/scene.rgs",
+                    context.serialization_context.clone(),
+                ))
+                .unwrap()
+                .finish(context.resource_manager.clone()),
+            );
+
+            context.scenes.add(scene)
+        };
+
+        Self { scene }
     }
 }
 
 impl Plugin for Game {
-    fn on_register(&mut self, context: PluginRegistrationContext) {
-        let script_constructors = &context.serialization_context.script_constructors;
-        script_constructors.add::<Game, Player, _>("Player");
-    }
-
-    fn on_standalone_init(&mut self, context: PluginContext) {
-        let mut scene = block_on(
-            block_on(SceneLoader::from_file(
-                "data/scene.rgs",
-                context.serialization_context.clone(),
-            ))
-            .unwrap()
-            .finish(context.resource_manager.clone()),
-        );
-
-        self.set_scene(context.scenes.add(scene), context);
-    }
-
-    fn on_enter_play_mode(&mut self, scene: Handle<Scene>, context: PluginContext) {
-        // Obtain scene from the editor.
-        self.set_scene(scene, context);
-    }
-
-    fn on_leave_play_mode(&mut self, context: PluginContext) {
-        self.set_scene(Handle::NONE, context)
-    }
-
-    fn update(&mut self, _context: &mut PluginContext) {
-        // Add your global update code here.
-    }
-
     fn id(&self) -> Uuid {
-        Self::type_uuid()
-    }
-
-    fn on_os_event(&mut self, _event: &Event<()>, _context: PluginContext) {
-        // Do something on OS event here.
-    }
-
-    fn on_unload(&mut self, _context: &mut PluginContext) {
-        // Do a cleanup here.
+        GameConstructor::type_uuid()
     }
 }
 
-#[derive(Visit, Inspect, Debug, Clone)]
+#[derive(Visit, Inspect, Reflect, Debug, Clone)]
 struct Player {
     sprite: Handle<Node>,
     move_left: bool,
@@ -102,6 +87,8 @@ struct Player {
     animations: Vec<Animation>,
     current_animation: u32,
 }
+
+impl_component_provider!(Player,);
 
 impl Default for Player {
     fn default() -> Self {
@@ -124,17 +111,8 @@ impl TypeUuidProvider for Player {
 }
 
 impl ScriptTrait for Player {
-    // Accepts events from Inspector in the editor and modifies self state accordingly.
-    fn on_property_changed(&mut self, args: &PropertyChanged) -> bool {
-        handle_object_property_changed!(self, args, Self::SPRITE => sprite)
-            || handle_collection_property_changed!(self, args, Self::ANIMATIONS => animations)
-    }
-
-    // Called once at initialization.
-    fn on_init(&mut self, context: ScriptContext) {}
-
     // Called everytime when there is an event from OS (mouse click, key press, etc.)
-    fn on_os_event(&mut self, event: &Event<()>, context: ScriptContext) {
+    fn on_os_event(&mut self, event: &Event<()>, _context: ScriptContext) {
         if let Event::WindowEvent { event, .. } = event {
             if let WindowEvent::KeyboardInput { input, .. } = event {
                 if let Some(keycode) = input.virtual_keycode {
@@ -161,7 +139,7 @@ impl ScriptTrait for Player {
     fn on_update(&mut self, context: ScriptContext) {
         // The script can be assigned to any scene node, but we assert that it will work only with
         // 2d rigid body nodes.
-        if let Some(rigid_body) = context.node.cast_mut::<RigidBody>() {
+        if let Some(rigid_body) = context.scene.graph[context.handle].cast_mut::<RigidBody>() {
             let x_speed = if self.move_left {
                 3.0
             } else if self.move_right {
@@ -216,7 +194,7 @@ impl ScriptTrait for Player {
                     current_animation
                         .current_frame()
                         .and_then(|k| k.texture.clone()),
-                )
+                );
             }
         }
     }
@@ -228,20 +206,16 @@ impl ScriptTrait for Player {
 
     // Returns unique id of parent plugin.
     fn plugin_uuid(&self) -> Uuid {
-        Game::type_uuid()
+        GameConstructor::type_uuid()
     }
 }
 
-#[derive(Default, Inspect, Visit, Debug, Clone)]
+#[derive(Default, Inspect, Reflect, Visit, Debug, Clone)]
 pub struct KeyFrameTexture {
     texture: Option<Texture>,
 }
 
 impl KeyFrameTexture {
-    fn on_property_changed(&mut self, args: &PropertyChanged) -> bool {
-        handle_object_property_changed!(self, args, Self::TEXTURE => texture)
-    }
-
     fn restore_resources(&mut self, resource_manager: ResourceManager) {
         // It is very important to restore texture handle after loading, otherwise the handle will
         // remain in "shallow" state when it just has path to data, but not the actual resource handle.
@@ -253,7 +227,7 @@ impl KeyFrameTexture {
     }
 }
 
-#[derive(Inspect, Visit, Debug, Clone)]
+#[derive(Inspect, Visit, Reflect, Debug, Clone)]
 pub struct Animation {
     name: String,
     keyframes: Vec<KeyFrameTexture>,
@@ -278,16 +252,6 @@ impl Default for Animation {
 }
 
 impl Animation {
-    // Once again, we must implement support for property editing, it is a bit tedious
-    // but must be done once.
-    fn on_property_changed(&mut self, args: &PropertyChanged) -> bool {
-        handle_object_property_changed!(self, args,
-            Self::CURRENT_FRAME => current_frame,
-            Self::NAME => name,
-            Self::SPEED => speed
-        ) || handle_collection_property_changed!(self, args, Self::KEYFRAMES => keyframes)
-    }
-
     pub fn current_frame(&self) -> Option<&KeyFrameTexture> {
         self.keyframes.get(self.current_frame as usize)
     }
