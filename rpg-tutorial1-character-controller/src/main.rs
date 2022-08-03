@@ -1,13 +1,11 @@
 use crate::{level::Level, player::Player};
 use fyrox::{
-    core::{color::Color, futures::executor::block_on, pool::Handle},
-    engine::{
-        framework::{Framework, GameState},
-        Engine,
-    },
-    event::{DeviceEvent, DeviceId, WindowEvent},
+    core::{color::Color, futures::executor::block_on, pool::Handle, uuid::Uuid},
+    engine::executor::Executor,
+    event::{Event, WindowEvent},
     event_loop::ControlFlow,
-    scene::Scene,
+    plugin::{Plugin, PluginConstructor, PluginContext},
+    scene::{node::TypeUuidProvider, Scene},
 };
 
 mod level;
@@ -19,44 +17,71 @@ struct Game {
     player: Player,
 }
 
-impl GameState for Game {
-    fn init(engine: &mut Engine) -> Self
-    where
-        Self: Sized,
-    {
+struct GameConstructor;
+
+impl PluginConstructor for GameConstructor {
+    fn create_instance(&self, _: Handle<Scene>, context: PluginContext) -> Box<dyn Plugin> {
+        Box::new(Game::new(context))
+    }
+}
+
+impl TypeUuidProvider for GameConstructor {
+    fn type_uuid() -> Uuid {
+        todo!()
+    }
+}
+
+impl Game {
+    fn new(context: PluginContext) -> Self {
         let mut scene = Scene::new();
 
         scene.ambient_lighting_color = Color::opaque(150, 150, 150);
 
-        let player = block_on(Player::new(engine.resource_manager.clone(), &mut scene));
+        let player = block_on(Player::new(context.resource_manager.clone(), &mut scene));
 
         Self {
             player,
-            level: block_on(Level::new(engine.resource_manager.clone(), &mut scene)),
-            scene: engine.scenes.add(scene),
+            level: block_on(Level::new(context.resource_manager.clone(), &mut scene)),
+            scene: context.scenes.add(scene),
         }
     }
+}
 
-    fn on_tick(&mut self, engine: &mut Engine, dt: f32, _: &mut ControlFlow) {
-        let scene = &mut engine.scenes[self.scene];
+impl Plugin for Game {
+    fn update(&mut self, context: &mut PluginContext, _: &mut ControlFlow) {
+        let scene = &mut context.scenes[self.scene];
 
-        self.player.update(scene, dt);
+        self.player.update(scene, context.dt);
     }
 
-    fn on_device_event(&mut self, _engine: &mut Engine, _device_id: DeviceId, event: DeviceEvent) {
-        self.player.handle_device_event(&event);
+    fn id(&self) -> Uuid {
+        GameConstructor::type_uuid()
     }
 
-    fn on_window_event(&mut self, _engine: &mut Engine, event: WindowEvent) {
+    fn on_os_event(
+        &mut self,
+        event: &Event<()>,
+        _context: PluginContext,
+        _control_flow: &mut ControlFlow,
+    ) {
         match event {
-            WindowEvent::KeyboardInput { input, .. } => {
-                self.player.handle_key_event(&input);
+            Event::DeviceEvent { event, .. } => {
+                self.player.handle_device_event(&event);
             }
+            Event::WindowEvent { event, .. } => match event {
+                WindowEvent::KeyboardInput { input, .. } => {
+                    self.player.handle_key_event(&input);
+                }
+                _ => (),
+            },
             _ => (),
         }
     }
 }
 
 fn main() {
-    Framework::<Game>::new().unwrap().title("RPG").run()
+    let mut executor = Executor::new();
+    executor.add_plugin_constructor(GameConstructor);
+    executor.get_window().set_title("RPG");
+    executor.run();
 }
