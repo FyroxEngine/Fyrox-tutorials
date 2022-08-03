@@ -558,7 +558,7 @@ fn main() {
                     game.update(&mut engine, TIMESTEP);
 
                     // Update engine each frame.
-                    engine.update(TIMESTEP);
+                    engine.update(TIMESTEP, control_flow);
                 }
 
                 // Rendering must be explicitly requested and handled after RedrawRequested event is received.
