@@ -1,11 +1,11 @@
 use crate::{level::Level, player::Player};
 use fyrox::{
-    core::{color::Color, futures::executor::block_on, pool::Handle, uuid::Uuid},
+    core::{color::Color, futures::executor::block_on, pool::Handle},
     engine::executor::Executor,
     event::{Event, WindowEvent},
     event_loop::ControlFlow,
     plugin::{Plugin, PluginConstructor, PluginContext},
-    scene::{node::TypeUuidProvider, Scene},
+    scene::Scene,
 };
 
 mod level;
@@ -22,12 +22,6 @@ struct GameConstructor;
 impl PluginConstructor for GameConstructor {
     fn create_instance(&self, _: Handle<Scene>, context: PluginContext) -> Box<dyn Plugin> {
         Box::new(Game::new(context))
-    }
-}
-
-impl TypeUuidProvider for GameConstructor {
-    fn type_uuid() -> Uuid {
-        todo!()
     }
 }
 
@@ -52,10 +46,6 @@ impl Plugin for Game {
         let scene = &mut context.scenes[self.scene];
 
         self.player.update(scene, context.dt);
-    }
-
-    fn id(&self) -> Uuid {
-        GameConstructor::type_uuid()
     }
 
     fn on_os_event(
