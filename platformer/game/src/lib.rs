@@ -1,6 +1,6 @@
 //! Game project.
-use fyrox::plugin::PluginConstructor;
 use fyrox::{
+    animation::spritesheet::SpriteSheetAnimation,
     core::{
         algebra::{Vector2, Vector3},
         futures::executor::block_on,
@@ -10,11 +10,9 @@ use fyrox::{
         uuid::{uuid, Uuid},
         visitor::prelude::*,
     },
-    engine::resource_manager::ResourceManager,
     event::{ElementState, Event, VirtualKeyCode, WindowEvent},
     impl_component_provider,
-    plugin::{Plugin, PluginContext, PluginRegistrationContext},
-    resource::texture::Texture,
+    plugin::{Plugin, PluginConstructor, PluginContext, PluginRegistrationContext},
     scene::{
         dim2::{rectangle::Rectangle, rigidbody::RigidBody},
         node::{Node, TypeUuidProvider},
@@ -72,11 +70,7 @@ impl Game {
     }
 }
 
-impl Plugin for Game {
-    fn id(&self) -> Uuid {
-        GameConstructor::type_uuid()
-    }
-}
+impl Plugin for Game {}
 
 #[derive(Visit, Inspect, Reflect, Debug, Clone)]
 struct Player {
@@ -84,7 +78,7 @@ struct Player {
     move_left: bool,
     move_right: bool,
     jump: bool,
-    animations: Vec<Animation>,
+    animations: Vec<SpriteSheetAnimation>,
     current_animation: u32,
 }
 
@@ -112,7 +106,7 @@ impl TypeUuidProvider for Player {
 
 impl ScriptTrait for Player {
     // Called everytime when there is an event from OS (mouse click, key press, etc.)
-    fn on_os_event(&mut self, event: &Event<()>, _context: ScriptContext) {
+    fn on_os_event(&mut self, event: &Event<()>, _context: &mut ScriptContext) {
         if let Event::WindowEvent { event, .. } = event {
             if let WindowEvent::KeyboardInput { input, .. } = event {
                 if let Some(keycode) = input.virtual_keycode {
@@ -129,14 +123,8 @@ impl ScriptTrait for Player {
         }
     }
 
-    fn restore_resources(&mut self, resource_manager: ResourceManager) {
-        for animation in self.animations.iter_mut() {
-            animation.restore_resources(resource_manager.clone());
-        }
-    }
-
     // Called every frame at fixed rate of 60 FPS.
-    fn on_update(&mut self, context: ScriptContext) {
+    fn on_update(&mut self, context: &mut ScriptContext) {
         // The script can be assigned to any scene node, but we assert that it will work only with
         // 2d rigid body nodes.
         if let Some(rigid_body) = context.scene.graph[context.handle].cast_mut::<RigidBody>() {
@@ -149,9 +137,9 @@ impl ScriptTrait for Player {
             };
 
             if x_speed != 0.0 {
-                self.current_animation = 0;
-            } else {
                 self.current_animation = 1;
+            } else {
+                self.current_animation = 0;
             }
 
             if self.jump {
@@ -190,10 +178,12 @@ impl ScriptTrait for Player {
                 .and_then(|n| n.cast_mut::<Rectangle>())
             {
                 // Set new frame to the sprite.
-                sprite.set_texture(
+                sprite.set_uv_rect(
                     current_animation
-                        .current_frame()
-                        .and_then(|k| k.texture.clone()),
+                        .current_frame_uv_rect()
+                        .cloned()
+                        .unwrap_or_default()
+                        .0,
                 );
             }
         }
@@ -202,74 +192,5 @@ impl ScriptTrait for Player {
     // Returns unique script id for serialization needs.
     fn id(&self) -> Uuid {
         Self::type_uuid()
-    }
-
-    // Returns unique id of parent plugin.
-    fn plugin_uuid(&self) -> Uuid {
-        GameConstructor::type_uuid()
-    }
-}
-
-#[derive(Default, Inspect, Reflect, Visit, Debug, Clone)]
-pub struct KeyFrameTexture {
-    texture: Option<Texture>,
-}
-
-impl KeyFrameTexture {
-    fn restore_resources(&mut self, resource_manager: ResourceManager) {
-        // It is very important to restore texture handle after loading, otherwise the handle will
-        // remain in "shallow" state when it just has path to data, but not the actual resource handle.
-        resource_manager
-            .state()
-            .containers_mut()
-            .textures
-            .try_restore_optional_resource(&mut self.texture);
-    }
-}
-
-#[derive(Inspect, Visit, Reflect, Debug, Clone)]
-pub struct Animation {
-    name: String,
-    keyframes: Vec<KeyFrameTexture>,
-    current_frame: u32,
-    speed: f32,
-
-    // We don't want this field to be visible from the editor, because this is internal parameter.
-    #[inspect(skip)]
-    t: f32,
-}
-
-impl Default for Animation {
-    fn default() -> Self {
-        Self {
-            name: "Unnamed".to_string(),
-            keyframes: vec![],
-            current_frame: 0,
-            speed: 10.0,
-            t: 0.0,
-        }
-    }
-}
-
-impl Animation {
-    pub fn current_frame(&self) -> Option<&KeyFrameTexture> {
-        self.keyframes.get(self.current_frame as usize)
-    }
-
-    fn restore_resources(&mut self, resource_manager: ResourceManager) {
-        for key_frame in self.keyframes.iter_mut() {
-            key_frame.restore_resources(resource_manager.clone());
-        }
-    }
-
-    pub fn update(&mut self, dt: f32) {
-        self.t += self.speed * dt;
-
-        if self.t >= 1.0 {
-            self.t = 0.0;
-
-            // Increase frame index and make sure it will be clamped in available bounds.
-            self.current_frame = (self.current_frame + 1) % self.keyframes.len() as u32;
-        }
     }
 }
