@@ -1,3 +1,5 @@
+use fyrox::animation::machine::MachineLayer;
+use fyrox::scene::animation::{AnimationPlayer, AnimationPlayerBuilder};
 use fyrox::{
     animation::{
         machine::{Machine, Parameter, PoseNode, State, Transition},
@@ -37,7 +39,7 @@ impl Bot {
             .request_model("data/models/zombie.fbx")
             .await
             .unwrap()
-            .instantiate_geometry(scene);
+            .instantiate(scene);
 
         scene.graph[model]
             .local_transform_mut()
@@ -130,20 +132,20 @@ impl Bot {
 fn create_play_animation_state(
     animation_resource: Model,
     name: &str,
-    machine: &mut Machine,
+    layer: &mut MachineLayer,
     scene: &mut Scene,
     model: Handle<Node>,
 ) -> (Handle<Animation>, Handle<State>) {
     // Animations retargetting just makes an instance of animation and binds it to
     // given model using names of bones.
     let animation = *animation_resource
-        .retarget_animations(model, scene)
+        .retarget_animations(model, &mut scene.graph)
         .get(0)
         .unwrap();
     // Create new PlayAnimation node and add it to machine.
-    let node = machine.add_node(PoseNode::make_play_animation(animation));
+    let node = layer.add_node(PoseNode::make_play_animation(animation));
     // Make a state using the node we've made.
-    let state = machine.add_state(State::new(name, node));
+    let state = layer.add_state(State::new(name, node));
     (animation, state)
 }
 
@@ -155,6 +157,7 @@ pub struct BotAnimationMachineInput {
 }
 
 pub struct BotAnimationMachine {
+    animation_player: Handle<Node>,
     machine: Machine,
 }
 
@@ -172,7 +175,13 @@ impl BotAnimationMachine {
         model: Handle<Node>,
         resource_manager: ResourceManager,
     ) -> Self {
-        let mut machine = Machine::new(model);
+        let animation_player =
+            AnimationPlayerBuilder::new(BaseBuilder::new()).build(&mut scene.graph);
+        scene.graph.link_nodes(animation_player, model);
+
+        let mut machine = Machine::new();
+
+        let root = machine.layers_mut().first_mut().unwrap();
 
         // Load animations in parallel.
         let (walk_animation_resource, idle_animation_resource, attack_animation_resource) = fyrox::core::futures::join!(
@@ -185,7 +194,7 @@ impl BotAnimationMachine {
         let (_, idle_state) = create_play_animation_state(
             idle_animation_resource.unwrap(),
             "Idle",
-            &mut machine,
+            root,
             scene,
             model,
         );
@@ -193,7 +202,7 @@ impl BotAnimationMachine {
         let (walk_animation, walk_state) = create_play_animation_state(
             walk_animation_resource.unwrap(),
             "Walk",
-            &mut machine,
+            root,
             scene,
             model,
         );
@@ -201,13 +210,13 @@ impl BotAnimationMachine {
         let (attack_animation, attack_state) = create_play_animation_state(
             attack_animation_resource.unwrap(),
             "Attack",
-            &mut machine,
+            root,
             scene,
             model,
         );
 
         // Next, define transitions between states.
-        machine.add_transition(Transition::new(
+        root.add_transition(Transition::new(
             // A name for debugging.
             "Idle->Walk",
             // Source state.
@@ -219,35 +228,35 @@ impl BotAnimationMachine {
             // A name of transition rule parameter.
             Self::IDLE_TO_WALK,
         ));
-        machine.add_transition(Transition::new(
+        root.add_transition(Transition::new(
             "Walk->Idle",
             walk_state,
             idle_state,
             0.4,
             Self::WALK_TO_IDLE,
         ));
-        machine.add_transition(Transition::new(
+        root.add_transition(Transition::new(
             "Walk->Attack",
             walk_state,
             attack_state,
             0.4,
             Self::WALK_TO_ATTACK,
         ));
-        machine.add_transition(Transition::new(
+        root.add_transition(Transition::new(
             "Idle->Attack",
             idle_state,
             attack_state,
             0.4,
             Self::IDLE_TO_ATTACK,
         ));
-        machine.add_transition(Transition::new(
+        root.add_transition(Transition::new(
             "Attack->Idle",
             attack_state,
             idle_state,
             0.4,
             Self::ATTACK_TO_IDLE,
         ));
-        machine.add_transition(Transition::new(
+        root.add_transition(Transition::new(
             "Attack->Walk",
             attack_state,
             walk_state,
@@ -256,12 +265,19 @@ impl BotAnimationMachine {
         ));
 
         // Define entry state.
-        machine.set_entry_state(idle_state);
+        root.set_entry_state(idle_state);
 
-        Self { machine }
+        Self {
+            animation_player,
+            machine,
+        }
     }
 
     pub fn update(&mut self, scene: &mut Scene, dt: f32, input: BotAnimationMachineInput) {
+        let animation_player = scene.graph[self.animation_player]
+            .query_component_ref::<AnimationPlayer>()
+            .unwrap();
+
         self.machine
             // Set transition parameters.
             .set_parameter(Self::WALK_TO_IDLE, Parameter::Rule(!input.walk))
@@ -271,7 +287,7 @@ impl BotAnimationMachine {
             .set_parameter(Self::ATTACK_TO_IDLE, Parameter::Rule(!input.attack))
             .set_parameter(Self::ATTACK_TO_WALK, Parameter::Rule(!input.attack))
             // Update machine and evaluate final pose.
-            .evaluate_pose(&scene.animations, dt)
+            .evaluate_pose(animation_player.animations(), dt)
             // Apply the pose to the graph.
             .apply(&mut scene.graph);
     }

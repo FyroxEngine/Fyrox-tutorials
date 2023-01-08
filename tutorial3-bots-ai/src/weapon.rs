@@ -19,7 +19,7 @@ impl Weapon {
             .request_model("data/models/m4.FBX")
             .await
             .unwrap()
-            .instantiate_geometry(scene);
+            .instantiate(scene);
 
         let shot_point = scene.graph.find_by_name(model, "Weapon:ShotPoint");
 

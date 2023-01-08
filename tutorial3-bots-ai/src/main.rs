@@ -1,20 +1,17 @@
 use crate::{bot::Bot, message::Message, weapon::Weapon};
-use fyrox::engine::{EngineInitParams, SerializationContext};
-use fyrox::scene::pivot::PivotBuilder;
 use fyrox::{
     core::{
         algebra::{Point3, UnitQuaternion, Vector3},
         color::Color,
         color_gradient::{ColorGradient, GradientPoint},
         math::{ray::Ray, vector_to_quat},
-        parking_lot::Mutex,
         pool::{Handle, Pool},
         sstorage::ImmutableString,
     },
-    engine::{resource_manager::ResourceManager, Engine},
+    engine::{resource_manager::ResourceManager, Engine, EngineInitParams, SerializationContext},
     event::{DeviceEvent, ElementState, Event, MouseButton, VirtualKeyCode, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
-    material::{Material, PropertyValue},
+    material::{Material, PropertyValue, SharedMaterial},
     resource::texture::TextureWrapMode,
     scene::{
         base::BaseBuilder,
@@ -22,7 +19,7 @@ use fyrox::{
         collider::{ColliderBuilder, ColliderShape},
         graph::{physics::RayCastOptions, Graph},
         mesh::{
-            surface::{SurfaceBuilder, SurfaceData},
+            surface::{SurfaceBuilder, SurfaceData, SurfaceSharedData},
             MeshBuilder, RenderPath,
         },
         node::Node,
@@ -30,6 +27,7 @@ use fyrox::{
             emitter::base::BaseEmitterBuilder, emitter::sphere::SphereEmitterBuilder,
             ParticleSystemBuilder,
         },
+        pivot::PivotBuilder,
         rigidbody::RigidBodyBuilder,
         transform::TransformBuilder,
         Scene,
@@ -338,14 +336,14 @@ fn create_shot_trail(
         .build();
 
     // Create unit cylinder with caps that faces toward Z axis.
-    let shape = Arc::new(Mutex::new(SurfaceData::make_cylinder(
+    let shape = SurfaceSharedData::new(SurfaceData::make_cylinder(
         6,     // Count of sides
         1.0,   // Radius
         1.0,   // Height
         false, // No caps are needed.
         // Rotate vertical cylinder around X axis to make it face towards Z axis
         &UnitQuaternion::from_axis_angle(&Vector3::x_axis(), 90.0f32.to_radians()).to_homogeneous(),
-    )));
+    ));
 
     // Create an instance of standard material for the shot trail.
     let mut material = Material::standard();
@@ -367,7 +365,7 @@ fn create_shot_trail(
             .with_lifetime(0.25),
     )
     .with_surfaces(vec![SurfaceBuilder::new(shape)
-        .with_material(Arc::new(Mutex::new(material)))
+        .with_material(SharedMaterial::new(material))
         .build()])
     // Make sure to set Forward render path, otherwise the object won't be
     // transparent.
@@ -397,7 +395,7 @@ impl Game {
             .request_model("data/models/scene.rgs")
             .await
             .unwrap()
-            .instantiate_geometry(&mut scene);
+            .instantiate(&mut scene);
 
         // Create player first.
         let mut player =
@@ -550,6 +548,7 @@ fn main() {
         serialization_context,
         events_loop: &event_loop,
         vsync: false,
+        headless: false,
     })
     .unwrap();
 
@@ -579,7 +578,7 @@ fn main() {
                     game.update(&mut engine, TIMESTEP);
 
                     // Update engine each frame.
-                    engine.update(TIMESTEP, control_flow, &mut lag);
+                    engine.update(TIMESTEP, control_flow, &mut lag, Default::default());
                 }
 
                 // Rendering must be explicitly requested and handled after RedrawRequested event is received.
