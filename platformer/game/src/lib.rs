@@ -4,12 +4,12 @@ use fyrox::{
     core::{
         algebra::{Vector2, Vector3},
         futures::executor::block_on,
-        inspect::{Inspect, PropertyInfo},
         pool::Handle,
-        reflect::Reflect,
+        reflect::prelude::*,
         uuid::{uuid, Uuid},
         visitor::prelude::*,
     },
+    engine::resource_manager::ResourceManager,
     event::{ElementState, Event, VirtualKeyCode, WindowEvent},
     impl_component_provider,
     plugin::{Plugin, PluginConstructor, PluginContext, PluginRegistrationContext},
@@ -72,7 +72,7 @@ impl Game {
 
 impl Plugin for Game {}
 
-#[derive(Visit, Inspect, Reflect, Debug, Clone)]
+#[derive(Visit, Reflect, Debug, Clone)]
 struct Player {
     sprite: Handle<Node>,
     move_left: bool,
@@ -137,9 +137,9 @@ impl ScriptTrait for Player {
             };
 
             if x_speed != 0.0 {
-                self.current_animation = 1;
-            } else {
                 self.current_animation = 0;
+            } else {
+                self.current_animation = 1;
             }
 
             if self.jump {
@@ -178,14 +178,19 @@ impl ScriptTrait for Player {
                 .and_then(|n| n.cast_mut::<Rectangle>())
             {
                 // Set new frame to the sprite.
+                sprite.set_texture(current_animation.texture());
                 sprite.set_uv_rect(
                     current_animation
                         .current_frame_uv_rect()
-                        .cloned()
-                        .unwrap_or_default()
-                        .0,
+                        .unwrap_or_default(),
                 );
             }
+        }
+    }
+
+    fn restore_resources(&mut self, resource_manager: ResourceManager) {
+        for animation in self.animations.iter_mut() {
+            animation.restore_resources(&resource_manager);
         }
     }
 
