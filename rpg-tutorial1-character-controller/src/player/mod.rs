@@ -1,7 +1,7 @@
 use crate::player::camera::CameraController;
 use fyrox::{
     animation::{
-        machine::{Machine, Parameter, PoseNode, State, Transition},
+        machine::{Machine, MachineLayer, Parameter, PoseNode, State, Transition},
         Animation,
     },
     core::{
@@ -12,9 +12,14 @@ use fyrox::{
     event::{DeviceEvent, ElementState, KeyboardInput, VirtualKeyCode},
     resource::model::Model,
     scene::{
-        base::BaseBuilder, collider::ColliderBuilder, collider::ColliderShape,
-        graph::physics::CoefficientCombineRule, node::Node, rigidbody::RigidBodyBuilder,
-        transform::TransformBuilder, Scene,
+        animation::AnimationPlayer,
+        base::BaseBuilder,
+        collider::{ColliderBuilder, ColliderShape},
+        graph::physics::CoefficientCombineRule,
+        node::Node,
+        rigidbody::RigidBodyBuilder,
+        transform::TransformBuilder,
+        Scene,
     },
 };
 
@@ -44,7 +49,7 @@ impl Player {
             .request_model("data/models/paladin/paladin.fbx")
             .await
             .unwrap()
-            .instantiate_geometry(scene);
+            .instantiate(scene);
 
         // Scale down paladin's model because it is too big.
         scene.graph[model]
@@ -218,20 +223,20 @@ impl Player {
 fn create_play_animation_state(
     animation_resource: Model,
     name: &str,
-    machine: &mut Machine,
+    layer: &mut MachineLayer,
     scene: &mut Scene,
     model: Handle<Node>,
 ) -> (Handle<Animation>, Handle<State>) {
     // Animations retargetting just makes an instance of animation and binds it to
     // given model using names of bones.
     let animation = *animation_resource
-        .retarget_animations(model, scene)
+        .retarget_animations(model, &mut scene.graph)
         .get(0)
         .unwrap();
     // Create new PlayAnimation node and add it to machine.
-    let node = machine.add_node(PoseNode::make_play_animation(animation));
+    let node = layer.add_node(PoseNode::make_play_animation(animation));
     // Make a state using the node we've made.
-    let state = machine.add_state(State::new(name, node));
+    let state = layer.add_state(State::new(name, node));
     (animation, state)
 }
 
@@ -242,6 +247,7 @@ pub struct AnimationMachineInput {
 
 pub struct AnimationMachine {
     machine: Machine,
+    animation_player: Handle<Node>,
 }
 
 impl AnimationMachine {
@@ -254,7 +260,13 @@ impl AnimationMachine {
         model: Handle<Node>,
         resource_manager: ResourceManager,
     ) -> Self {
-        let mut machine = Machine::new(model);
+        let animation_player = scene.graph.find(model, &mut |n| {
+            n.query_component_ref::<AnimationPlayer>().is_some()
+        });
+
+        let mut machine = Machine::new();
+
+        let root = machine.layers_mut().first_mut().unwrap();
 
         // Load animations in parallel.
         let (walk_animation_resource, idle_animation_resource) = fyrox::core::futures::join!(
@@ -266,7 +278,7 @@ impl AnimationMachine {
         let (_, idle_state) = create_play_animation_state(
             idle_animation_resource.unwrap(),
             "Idle",
-            &mut machine,
+            root,
             scene,
             model,
         );
@@ -274,13 +286,13 @@ impl AnimationMachine {
         let (walk_animation, walk_state) = create_play_animation_state(
             walk_animation_resource.unwrap(),
             "Walk",
-            &mut machine,
+            root,
             scene,
             model,
         );
 
         // Next, define transitions between states.
-        machine.add_transition(Transition::new(
+        root.add_transition(Transition::new(
             // A name for debugging.
             "Idle->Walk",
             // Source state.
@@ -292,7 +304,7 @@ impl AnimationMachine {
             // A name of transition rule parameter.
             Self::IDLE_TO_WALK,
         ));
-        machine.add_transition(Transition::new(
+        root.add_transition(Transition::new(
             "Walk->Idle",
             walk_state,
             idle_state,
@@ -301,18 +313,25 @@ impl AnimationMachine {
         ));
 
         // Define entry state.
-        machine.set_entry_state(idle_state);
+        root.set_entry_state(idle_state);
 
-        Self { machine }
+        Self {
+            machine,
+            animation_player,
+        }
     }
 
     pub fn update(&mut self, scene: &mut Scene, dt: f32, input: AnimationMachineInput) {
+        let animation_player = scene.graph[self.animation_player]
+            .query_component_ref::<AnimationPlayer>()
+            .unwrap();
+
         self.machine
             // Set transition parameters.
             .set_parameter(Self::WALK_TO_IDLE, Parameter::Rule(!input.walk))
             .set_parameter(Self::IDLE_TO_WALK, Parameter::Rule(input.walk))
             // Update machine and evaluate final pose.
-            .evaluate_pose(&scene.animations, dt)
+            .evaluate_pose(animation_player.animations(), dt)
             // Apply the pose to the graph.
             .apply(&mut scene.graph);
     }

@@ -1,6 +1,6 @@
 use fyrox::{
     core::pool::Handle,
-    engine::resource_manager::{ ResourceManager},
+    engine::resource_manager::ResourceManager,
     scene::{node::Node, Scene},
 };
 
@@ -11,12 +11,10 @@ pub struct Level {
 impl Level {
     pub async fn new(resource_manager: ResourceManager, scene: &mut Scene) -> Self {
         let root = resource_manager
-            .request_model(
-                "data/levels/level.rgs"
-            )
+            .request_model("data/levels/level.rgs")
             .await
             .unwrap()
-            .instantiate_geometry(scene);
+            .instantiate(scene);
 
         Self { root }
     }
