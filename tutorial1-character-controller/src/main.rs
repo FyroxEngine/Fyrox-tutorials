@@ -210,7 +210,7 @@ impl Game {
             .request_model("data/models/scene.rgs")
             .await
             .unwrap()
-            .instantiate_geometry(&mut scene);
+            .instantiate(&mut scene);
 
         Self {
             player: Player::new(&mut scene, engine.resource_manager.clone()).await,
@@ -237,6 +237,7 @@ fn main() {
         serialization_context,
         events_loop: &event_loop,
         vsync: false,
+        headless: false,
     })
     .unwrap();
 
@@ -266,7 +267,7 @@ fn main() {
                     game.update(&mut engine);
 
                     // Update engine each frame.
-                    engine.update(TIMESTEP, control_flow, &mut lag);
+                    engine.update(TIMESTEP, control_flow, &mut lag, Default::default());
                 }
 
                 // Rendering must be explicitly requested and handled after RedrawRequested event is received.
