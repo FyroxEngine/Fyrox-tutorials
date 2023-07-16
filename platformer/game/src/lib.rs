@@ -8,14 +8,14 @@ use fyrox::{
         reflect::prelude::*,
         uuid::{uuid, Uuid},
         visitor::prelude::*,
+        TypeUuidProvider,
     },
-    engine::resource_manager::ResourceManager,
     event::{ElementState, Event, VirtualKeyCode, WindowEvent},
     impl_component_provider,
     plugin::{Plugin, PluginConstructor, PluginContext, PluginRegistrationContext},
     scene::{
         dim2::{rectangle::Rectangle, rigidbody::RigidBody},
-        node::{Node, TypeUuidProvider},
+        node::Node,
         Scene, SceneLoader,
     },
     script::{ScriptContext, ScriptTrait},
@@ -58,9 +58,10 @@ impl Game {
                 block_on(SceneLoader::from_file(
                     "data/scene.rgs",
                     context.serialization_context.clone(),
+                    context.resource_manager.clone(),
                 ))
                 .unwrap()
-                .finish(context.resource_manager.clone()),
+                .finish(),
             );
 
             context.scenes.add(scene)
@@ -185,12 +186,6 @@ impl ScriptTrait for Player {
                         .unwrap_or_default(),
                 );
             }
-        }
-    }
-
-    fn restore_resources(&mut self, resource_manager: ResourceManager) {
-        for animation in self.animations.iter_mut() {
-            animation.restore_resources(&resource_manager);
         }
     }
 
