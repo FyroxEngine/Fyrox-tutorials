@@ -1,9 +1,19 @@
-[package]
-name = "rpg-tutorial1-character-controller"
-version = "0.2.0"
-edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[workspace]
+members = ["editor", "executor", "executor-wasm", "executor-android", "game"]
+resolver = "2"
 
-[dependencies]
-fyrox = {path = "../../fyrox", version = "0.29"}
+[workspace.dependencies.fyrox]
+git = "https://github.com/FyroxEngine/Fyrox"
+rev = "a2079c684fd6f2e9b21ef15fc5818e9a27fdf8cc"
+
+[workspace.dependencies.fyroxed_base]
+git = "https://github.com/FyroxEngine/Fyrox"
+rev = "a2079c684fd6f2e9b21ef15fc5818e9a27fdf8cc"
+
+# Optimize the engine in debug builds, but leave project's code non-optimized.
+# By using this technique, you can still debug you code, but engine will be fully
+# optimized and debug builds won't be terribly slow. With this option, you can
+# compile your game in debug mode, which is much faster (at least x3), than release.
+[profile.dev.package."*"]
+opt-level = 3

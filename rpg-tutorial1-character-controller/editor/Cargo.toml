@@ -1,0 +1,10 @@
+
+[package]
+name = "editor"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+fyrox = {workspace = true}
+fyroxed_base = {workspace = true}
+rpg = { path = "../game" }
